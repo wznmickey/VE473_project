@@ -4,7 +4,7 @@
 
 namespace cfg
 {
-    struct CONFIG
+    struct Config
     {
         const unsigned int width = 2560;
         const unsigned int height = 720;

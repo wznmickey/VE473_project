@@ -1,6 +1,6 @@
 #include "Camera.h"
 #include <iostream>
-extern cfg::CONFIG config;
+extern cfg::Config config;
 Camera::Camera()
 {
     

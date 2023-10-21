@@ -13,7 +13,7 @@ void signal_callback_handler(int signum) {
    flag = false;
 }
 
-cfg::CONFIG config;
+cfg::Config config;
 
 int main()
 {
