@@ -1,6 +1,7 @@
 #include <iostream>
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include <opencv2/highgui.hpp>
 #include <opencv2/videoio.hpp>
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
@@ -10,7 +11,7 @@ using namespace cv;
 using namespace std;
 vector<Mat> seperatePhoto(cv::Mat image)
 {
-        int width = image.cols;
+    int width = image.cols;
     int height = image.rows;
 
     // 定义左半部分和右半部分的矩形区域
@@ -50,6 +51,7 @@ int main()
 
 
 
+
     const int board_w = 11,
               board_h = 11;
     const int board_n = board_w * board_h;
@@ -60,14 +62,31 @@ int main()
     int found, successes = 0;
     Size img_size;
     int k = 0, n = 0;
-    auto video = VideoCapture();
-
+    auto video = VideoCapture(0);
+    if (video.set(CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G')))
+    {
+        cout<<"may success in MJPG"<<endl;
+    }
+    if (video.set(CAP_PROP_BUFFERSIZE,1))
+    {
+        cout<<"may success in CAP_PROP_BUFFERSIZE"<<endl;
+    }
+    video.set(CAP_PROP_FRAME_WIDTH,720);
+    video.set(CAP_PROP_FRAME_HEIGHT, 640);
+    if (video.isOpened())
+ {
+     cout << "视频中图像的宽度=" << video.get(CAP_PROP_FRAME_WIDTH) << endl;
+     cout << "视频中图像的高度=" << video.get(CAP_PROP_FRAME_HEIGHT) << endl;
+     cout << "视频帧率=" << video.get(CAP_PROP_FPS) << endl;
+     cout << "视频的总帧数=" << video.get(CAP_PROP_FRAME_COUNT);
+ }
     while (successes <= 20)
     {
 
         {
             cv::Mat image;
-            video.read(image);
+            video>>image;
+            imshow("a", image);
             auto x = seperatePhoto(image);
             auto matImage = x[0];
             auto matImage2 = x[1];
