@@ -1,8 +1,0 @@
-[
-{
-  "directory": "/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/VE473_project/distancesrc/cali",
-  "command": "/usr/bin/c++  -isystem /usr/include/opencv4 -std=gnu++11 -o CMakeFiles/main.dir/main.cpp.o -c /home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/VE473_project/distancesrc/cali/main.cpp",
-  "file": "/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/VE473_project/distancesrc/cali/main.cpp",
-  "output": "CMakeFiles/main.dir/main.cpp.o"
-}
-]
