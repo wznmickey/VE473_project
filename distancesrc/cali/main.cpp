@@ -2,6 +2,7 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
@@ -52,33 +53,33 @@ int main()
 
 
 
-    const int board_w = 11,
-              board_h = 11;
+    const int board_w = 10,
+              board_h = 7;
     const int board_n = board_w * board_h;
-    Size board_size(11, 11);
+    Size board_size(10, 7);
     Mat gray_img, drawn_img;
     std::vector<Point2f> point_pix_pos_buf;
     std::vector<std::vector<Point2f>> point_pix_pos;
     int found, successes = 0;
     Size img_size;
     int k = 0, n = 0;
-    auto video = VideoCapture(0);
-    if (video.set(CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G')))
-    {
-        cout<<"may success in MJPG"<<endl;
-    }
-    if (video.set(CAP_PROP_BUFFERSIZE,1))
-    {
-        cout<<"may success in CAP_PROP_BUFFERSIZE"<<endl;
-    }
-    video.set(CAP_PROP_FRAME_WIDTH,720);
-    video.set(CAP_PROP_FRAME_HEIGHT, 640);
+    auto video = VideoCapture(2);
+    // if (video.set(CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G')))
+    // {
+    //     cout<<"may success in MJPG"<<endl;
+    // }
+    // if (video.set(CAP_PROP_BUFFERSIZE,1))
+    // {
+    //     cout<<"may success in CAP_PROP_BUFFERSIZE"<<endl;
+    // }
+    video.set(CAP_PROP_FRAME_WIDTH,1280);
+    video.set(CAP_PROP_FRAME_HEIGHT, 480);
     if (video.isOpened())
  {
      cout << "视频中图像的宽度=" << video.get(CAP_PROP_FRAME_WIDTH) << endl;
      cout << "视频中图像的高度=" << video.get(CAP_PROP_FRAME_HEIGHT) << endl;
-     cout << "视频帧率=" << video.get(CAP_PROP_FPS) << endl;
-     cout << "视频的总帧数=" << video.get(CAP_PROP_FRAME_COUNT);
+    //  cout << "视频帧率=" << video.get(CAP_PROP_FPS) << endl;
+    //  cout << "视频的总帧数=" << video.get(CAP_PROP_FRAME_COUNT);
  }
     while (successes <= 20)
     {
@@ -86,17 +87,22 @@ int main()
         {
             cv::Mat image;
             video>>image;
-            imshow("a", image);
+            
             auto x = seperatePhoto(image);
-            auto matImage = x[0];
+            auto matImage1 = x[0];
             auto matImage2 = x[1];
-            waitKey(10);
+            cv::Mat matImage;
+            cvtColor(matImage1, matImage, COLOR_RGB2GRAY);
             img_size.width = matImage.cols;
             img_size.height = matImage.rows;
             found = findChessboardCorners(matImage, board_size, point_pix_pos_buf);
+            imshow("a", matImage);
+            waitKey(1);
+            cout<<found<<endl;
             if (found && point_pix_pos_buf.size() == board_n)
             {
                 successes++;
+                cout<<successes<<endl;
                 find4QuadCornerSubpix(matImage, point_pix_pos_buf, Size(5, 5));
                 point_pix_pos.push_back(point_pix_pos_buf);
                 drawn_img = matImage.clone();
@@ -105,9 +111,9 @@ int main()
                 waitKey(10);
             }
             else{
-                std::cout << "failed in" << std::endl;
-                imshow("corners", matImage);
-                waitKey(10);
+                // std::cout << "failed in" << std::endl;
+                // imshow("corners", matImage);
+                // waitKey(10);
                 }
             //std::cout << "1" << std::endl;
             point_pix_pos_buf.clear();
