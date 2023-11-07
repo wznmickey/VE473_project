@@ -7,7 +7,7 @@
 #include <opencv2/calib3d.hpp>
 // #include <opencv2/core/eigen.hpp>
 #include <vector>
-
+#define DEBUG
 using namespace cv;
 using namespace std;
 // using namespace Eigen;
@@ -54,6 +54,7 @@ void calculateDistance(vector<Mat> vec)
 {
 
     cv::Mat disparityMap;
+    #ifdef DEBUG
 
     cv::namedWindow("Left Half", cv::WINDOW_NORMAL);
     cv::imshow("Left Half", vec[0]);
@@ -62,7 +63,7 @@ void calculateDistance(vector<Mat> vec)
     cv::imshow("Right Half", vec[1]);
 
     cv::waitKey(0);
-
+#endif
 //     Ptr<ORB> orb = ORB::create();
 //     Mat gray1,gray2;
 //     gray1 = vec[0].clone();
@@ -181,10 +182,13 @@ cout<<type<<endl;
     // }
 
 cv::normalize(ans, ans,0,255,NORM_MINMAX,CV_8U);
+cv::imwrite("result.jpg",ans);    
+#ifdef DEBUG
+
 cv::imshow("a", ans);
 
 cv::waitKey(0);
-
+#endif
 
 // cv::Mat pointCloud;
 
