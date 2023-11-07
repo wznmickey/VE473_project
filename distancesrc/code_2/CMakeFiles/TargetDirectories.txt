@@ -1,3 +1,0 @@
-/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/code_2/CMakeFiles/main.dir
-/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/code_2/CMakeFiles/edit_cache.dir
-/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/code_2/CMakeFiles/rebuild_cache.dir
