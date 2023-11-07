@@ -8,7 +8,7 @@
 #include <opencv2/calib3d.hpp>
 // #include <opencv2/core/eigen.hpp>
 #include <vector>
-
+#define DEBUG
 using namespace cv;
 using namespace std;
 // using namespace Eigen;
@@ -56,6 +56,7 @@ void calculateDistance(vector<Mat> vec)
 
     cv::Mat disparityMap;
 
+    #ifdef DEBUG
     cv::namedWindow("Left Half", cv::WINDOW_NORMAL);
     cv::imshow("Left Half", vec[0]);
 
@@ -63,7 +64,8 @@ void calculateDistance(vector<Mat> vec)
     cv::imshow("Right Half", vec[1]);
 
     cv::waitKey(0);
-
+    #endif
+    
     Ptr<ORB> orb = ORB::create();
     Mat gray1,gray2;
     gray1 = vec[0].clone();
@@ -87,9 +89,11 @@ printf("456");
            ,pairs[0].queryIdx,pairs[0].trainIdx,pairs[0].distance);
  Mat canvas;
     drawMatches(vec[0],feature_points1,vec[1],feature_points2,pairs,canvas);
+        #ifdef DEBUG
+
     imshow("show",canvas);
     waitKey(0);
-
+#endif
 
      //You can also filter the match to generate
     vector<DMatch> good;
@@ -108,21 +112,25 @@ printf("456");
         }
     }
     drawMatches(vec[0],feature_points1,vec[1],feature_points2,good,canvas);
-    // imwrite("../good_match.jpg",canvas);
+    imwrite("../good_match.jpg",canvas);
+        #ifdef DEBUG
+
     imshow("show",canvas);
     waitKey(0);
-
+    #endif
     drawKeypoints(vec[0],feature_points1,canvas,Scalar::all(-1),DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-    // imwrite("../keypoints.jpg",canvas);
+    imwrite("../keypoints.jpg",canvas);
+        #ifdef DEBUG
+
     imshow("show",canvas);
     waitKey(0);
-
+#endif
     cv::Mat ans = vec[0].clone();
     ans.setTo(0);
     ans.convertTo(ans, CV_8UC1);
     ans = Mat(Size(vec[0].size()),CV_8UC1);
     cout<<ans.size()<<endl;
-    cout<<ans;
+    // cout<<ans;
     cout<<ans.at<uchar>(Point(1,1))<<endl;;
     for (auto i=0;i<good.size();i++)
     {
@@ -135,8 +143,11 @@ printf("456");
         // cout<<"b" <<ans.at<uchar>(x.x,x.y)<<endl;
     }
     // cout<<ans;
+        #ifdef DEBUG
+
     cv::imshow("ans", ans);
     waitKey(0);
+#endif
     // for (auto i :good)
     // {
     //     cout<<i.distance<<" "<<endl;
