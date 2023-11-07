@@ -72,8 +72,8 @@ int main()
     // {
     //     cout<<"may success in CAP_PROP_BUFFERSIZE"<<endl;
     // }
-    video.set(CAP_PROP_FRAME_WIDTH,1280);
-    video.set(CAP_PROP_FRAME_HEIGHT, 480);
+    // video.set(CAP_PROP_FRAME_WIDTH,1280);
+    // video.set(CAP_PROP_FRAME_HEIGHT, 480);
     if (video.isOpened())
  {
      cout << "视频中图像的宽度=" << video.get(CAP_PROP_FRAME_WIDTH) << endl;
@@ -81,7 +81,7 @@ int main()
     //  cout << "视频帧率=" << video.get(CAP_PROP_FPS) << endl;
     //  cout << "视频的总帧数=" << video.get(CAP_PROP_FRAME_COUNT);
  }
-    while (successes <= 20)
+    while (successes <= 50)
     {
 
         {
@@ -92,23 +92,23 @@ int main()
             auto matImage1 = x[0];
             auto matImage2 = x[1];
             cv::Mat matImage;
-            cvtColor(matImage1, matImage, COLOR_RGB2GRAY);
+            cvtColor(matImage2, matImage, COLOR_RGB2GRAY);
             img_size.width = matImage.cols;
             img_size.height = matImage.rows;
             found = findChessboardCorners(matImage, board_size, point_pix_pos_buf);
             imshow("a", matImage);
             waitKey(1);
-            cout<<found<<endl;
+            // cout<<found<<endl;
             if (found && point_pix_pos_buf.size() == board_n)
             {
                 successes++;
-                cout<<successes<<endl;
+                // cout<<successes<<endl;
                 find4QuadCornerSubpix(matImage, point_pix_pos_buf, Size(5, 5));
                 point_pix_pos.push_back(point_pix_pos_buf);
                 drawn_img = matImage.clone();
                 drawChessboardCorners(matImage, board_size, point_pix_pos_buf, found);
                 imshow("corners", matImage);
-                waitKey(10);
+                waitKey(1);
             }
             else{
                 // std::cout << "failed in" << std::endl;
@@ -154,3 +154,17 @@ int main()
               << dist_coeffs << std::endl;
     return 0;
 }
+
+
+
+/*
+左
+[2164.532495233347, 0, 636.4512706056147;
+ 0, 3812.779355652302, 387.1529448290057;
+ 0, 0, 1]
+[0.071274264286741, 107.610371668564, 0.003307881662813802, 0.01271162793812094, 0.8495221798740373]
+
+右
+
+
+*/
