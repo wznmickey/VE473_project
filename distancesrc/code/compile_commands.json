@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/code",
+  "command": "/usr/bin/c++  -I/usr/include/eigen3 -isystem /usr/include/opencv4 -std=gnu++11 -o CMakeFiles/main.dir/main.cpp.o -c /home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/code/main.cpp",
+  "file": "/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/code/main.cpp",
+  "output": "CMakeFiles/main.dir/main.cpp.o"
+}
+]
