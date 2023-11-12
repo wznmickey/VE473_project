@@ -63,7 +63,7 @@ int main()
     int found, successes = 0;
     Size img_size;
     int k = 0, n = 0;
-    auto video = VideoCapture(2);
+    auto video = VideoCapture(0);
     // if (video.set(CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G')))
     // {
     //     cout<<"may success in MJPG"<<endl;
@@ -95,9 +95,9 @@ int main()
             cvtColor(matImage2, matImage, COLOR_RGB2GRAY);
             img_size.width = matImage.cols;
             img_size.height = matImage.rows;
-            found = findChessboardCorners(matImage, board_size, point_pix_pos_buf);
             imshow("a", matImage);
-            waitKey(1);
+            waitKey(0);
+            found = findChessboardCorners(matImage, board_size, point_pix_pos_buf);
             // cout<<found<<endl;
             if (found && point_pix_pos_buf.size() == board_n)
             {
@@ -148,10 +148,15 @@ int main()
         point_count.push_back(board_h * board_w);
     }
     std::cout << 100 << std::endl;
+    
     double temp = calibrateCamera(point_grid_pos, point_pix_pos, img_size, camera_matrix, dist_coeffs, rvecs, tvecs);
     std::cout << temp << std::endl;
+    cv::FileStorage file_settings("right.yml", cv::FileStorage::WRITE);
     std::cout << camera_matrix << std::endl
               << dist_coeffs << std::endl;
+    file_settings<<"camera_matrix" <<camera_matrix;
+    file_settings<< "dist_coeffs"<<dist_coeffs;
+    file_settings.release();
     return 0;
 }
 
@@ -168,3 +173,35 @@ int main()
 
 
 */
+
+
+/*
+you
+
+[878.72313308412, 0, 652.3548896860685;
+ 0, 831.5177942954256, 373.7528333479796;
+ 0, 0, 1]
+[0.2504010010276621, 0.2395121815623784, -0.01191231717468861, 0.01037120921368068, -0.9875812308176741]
+
+second
+
+[923.6059436631444, 0, 619.9664371903424;
+ 0, 921.9147498553101, 411.1488993580995;
+ 0, 0, 1]
+[0.2316886352110009, 0.3166386346834036, 0.005227495968425342, 0.003530732020937117, -1.83842045350853]
+
+zuo
+
+
+[961.400713941512, 0, 603.0692661947741;
+ 0, 891.3845581779657, 396.0214362542773;
+ 0, 0, 1]
+[0.1280390477756253, 2.107511609815078, 0.001047395646109399, -0.01247425027491435, -6.596049215309413]
+
+second
+[762.2457179428106, 0, 598.3124965034409;
+ 0, 760.4689721609482, 389.3908501730829;
+ 0, 0, 1]
+[0.1015670190386034, 0.1614345656161827, -0.003745231470147914, -0.0002159008986214541, -0.5845529813379872]
+*/
+
