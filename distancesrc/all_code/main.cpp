@@ -1,6 +1,7 @@
 #include <iostream>
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include <opencv2/core/types.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
@@ -51,7 +52,7 @@ vector<Mat> seperatePhoto(cv::Mat image)
 }
 
 
-void calculateDistance(vector<Mat> vec)
+double calculateDistance(vector<Mat> vec,cv::Rect2d roi)
 {
 
     cv::Mat disparityMap;
@@ -70,21 +71,18 @@ vec[0].convertTo(vec[0], CV_8UC1);
 
 vec[1].convertTo(vec[1], CV_8UC1);
 
-
 stereo->compute(vec[0], vec[1], disparityMap);
 
 Mat ans = disparityMap.clone();
 int type = disparityMap.type();
 ans.convertTo(ans, CV_16UC1);
 
-cv::normalize(disparityMap, disparityMap,0,255,NORM_MINMAX,CV_8U);
 
 
-    cv::imshow("a", disparityMap);
-    cv::waitKey(1);
     float fx = 21;
     float baseline = 100; //基线距离650mm
-
+    double finalDistance = 0;
+    auto countedPoint = 0;
     if (type == CV_8U)
     {
         const float PI = 3.14159265358;
@@ -101,11 +99,19 @@ cv::normalize(disparityMap, disparityMap,0,255,NORM_MINMAX,CV_8U);
                 // cout<< i<<" " <<j<<" " <<height <<" " <<width<<endl;
                 if (!dispData[id])  continue;  //防止0除
                 depthData[id] = ushort( (float)fx *baseline / ((float)dispData[id]) );
+                
+                if (i>=roi.y && i<=roi.y+roi.height && j>=roi.x && j<=roi.x+roi.width)
+                {
+                    finalDistance+=depthData[id];
+                    countedPoint++;
+                }
+                
                 // cout<<depthData[id]<<endl;
             }
         }
     }
-return ;
+    cout<<"WE counted" <<countedPoint<<endl;
+    return finalDistance/countedPoint; //
 }
 
 
