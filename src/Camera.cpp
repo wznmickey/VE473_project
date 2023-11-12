@@ -1,14 +1,25 @@
 #include "Camera.h"
 #include <iostream>
 extern cfg::Config config;
-Camera::Camera()
+Camera::Camera(int camid)
 {
-    
-    if (!cap.isOpened()) {
+    this->camid = (int)camid;
+    cap = new cv::VideoCapture(camid);
+    if (!cap->isOpened()) {
         std::cerr << "Cannot open camera";
         exit(-1);
     }
     cam_init();
+}
+
+Camera::Camera(std::string filename)
+{
+    this->filename = filename;
+    cap = new cv::VideoCapture(filename);
+    if (!cap->isOpened()) {
+        std::cerr << "Cannot open video: "<<filename<<std::endl;
+        exit(-1);
+    }
 }
 
 /**
@@ -17,9 +28,9 @@ Camera::Camera()
  */
 void Camera::cam_init(void)
 {
-    cap.set(3, config.width);
-    cap.set(4, config.height);
-    cap.set(5, config.fps);
+    cap->set(3, config.width);
+    cap->set(4, config.height);
+    //cap.set(5, config.fps);
 }
 
 /**
@@ -30,7 +41,15 @@ void Camera::cam_init(void)
  */
 cv::Mat Camera::take_pic(bool split)
 {
-    cap.read(frame);
+    cap->read(frame);
+    if (this->isVid())
+    {
+        if (frame.empty())
+        {
+            std::cout << "End of video" << std::endl;
+            return frame; 
+        }
+    }
     if(split) split_pic();
     return frame;
 }
@@ -94,5 +113,6 @@ void Camera::save_pic(WhichCam p, std::string img_name = "img.jpg")
 
 Camera::~Camera()
 {
-    cap.release();
+    cap->release();
+    if (cap != nullptr)delete cap;
 }

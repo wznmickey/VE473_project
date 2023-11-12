@@ -26,16 +26,23 @@ enum WhichCam
 class Camera
 {
     public:
-        Camera();
+        Camera(int camid = 0);
+        Camera(std::string filename);
         ~Camera();
 
     private:
-        cv::VideoCapture cap = cv::VideoCapture(0);
+        //cv::VideoCapture cap = cv::VideoCapture(0);
+        cv::VideoCapture * cap = nullptr;
         cv::Mat frame;
         cv::Mat frameLeft;
         cv::Mat frameRight;
+
+        int camid = -1;
+        std::string filename = "";
         void cam_init(void);
         void split_pic(void);
+        bool isCam(){return camid != -1;}
+        bool isVid(){return filename != "";}
 
     public:
         cv::Mat take_pic(bool split = true);

@@ -1,25 +1,33 @@
-#include <fstream>
-#include <sstream>
-#include <iostream>
-
-#include <opencv2/dnn.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
-#include "car.h"
-
-using namespace cv;
-using namespace dnn;
-using namespace std;
+#include "car_detection.h"
 
 vector<string> classes;
 
 float MAX_DISTANCE_MARGIN = 250;
 
+Car_Detection::Car_Detection()
+{
+    // Load names of classes
+    string classesFile = "model/car-obj.names";
+    ifstream ifs(classesFile.c_str());
+    string line;
+    while (getline(ifs, line)) classes.push_back(line);
+    
+    // Give the configuration and weight files for the model
+    String modelConfiguration = "model/yolov3-tiny-car.cfg";
+    String modelWeights = "model/yolov3-tiny-car.weights";
+
+    // Load the network
+    net = readNetFromDarknet(modelConfiguration, modelWeights);
+    net.setPreferableBackend(DNN_BACKEND_OPENCV);
+    net.setPreferableTarget(DNN_TARGET_CPU);
+}
+
+
 /**
  * @brief postprocess the network output, find the car block
  * @return TODO: to be determined
 */
-void findCars(Mat& frame, const vector<Mat>& outs, float confThreshold = 0.3) {
+void Car_Detection::findCars(Mat& frame, const vector<Mat>& outs, float confThreshold) {
     vector<int> classIds;
     vector<float> confidences;
     vector<Rect> boxes;
@@ -61,25 +69,11 @@ void findCars(Mat& frame, const vector<Mat>& outs, float confThreshold = 0.3) {
 /**
  * @return TODO: to be determined
 */
-void callNetworks(Mat & frame) {
+void Car_Detection::callNetworks(Mat & frame) {
     // Initialize the parameters
     int inpWidth = 416;  // Width of network's input image
     int inpHeight = 416; // Height of network's input image
 
-    // Load names of classes
-    string classesFile = "model/car-obj.names";
-    ifstream ifs(classesFile.c_str());
-    string line;
-    while (getline(ifs, line)) classes.push_back(line);
-    
-    // Give the configuration and weight files for the model
-    String modelConfiguration = "model/yolov3-tiny-car.cfg";
-    String modelWeights = "model/yolov3-tiny-car.weights";
-
-    // Load the network
-    Net net = readNetFromDarknet(modelConfiguration, modelWeights);
-    net.setPreferableBackend(DNN_BACKEND_OPENCV);
-    net.setPreferableTarget(DNN_TARGET_CPU);
 
     // Create a 4D blob from a frame.
     Mat blob;
@@ -92,13 +86,14 @@ void callNetworks(Mat & frame) {
     vector<Mat> outs;
     net.forward(outs, getOutputsNames(net));
     
-    return findCars(frame, outs);
+    //return findCars(frame, outs);
+    findCars(frame, outs);
 }
 
 /**
  * @brief Get the names of the output layers
  */
-vector<String> getOutputsNames(const Net& net)
+vector<String> Car_Detection::getOutputsNames(const Net& net)
 {
     static vector<String> names;
     if (names.empty())
