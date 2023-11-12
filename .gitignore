@@ -1,12 +1,4 @@
-*
 .vscode/
 compile_commands.json
 
-!*.c
-!*.py 
-!*.cpp
-!*.h
-!*.hpp
-!*.txt
-!*.md
-!*.sh
+build/
