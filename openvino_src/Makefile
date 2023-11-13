@@ -1,0 +1,1 @@
+g++ -o test test.cpp -I /usr/include/opencv4 -I /opt/intel/openvino_2022/runtime
