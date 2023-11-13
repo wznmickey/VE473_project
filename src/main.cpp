@@ -10,6 +10,7 @@
 #include "car.h"
 #include "car_detection.h"
 #include <unistd.h>
+#include "distance.h"
 
 bool flag = true;
 void signal_callback_handler(int signum) {
@@ -24,12 +25,22 @@ int main()
     Camera camera("/home/zjche/Desktop/VE473_project/video/1.avi");
     //Camera camera(0);
     Car_Detection detect;
+    //Init distcalc
+    distcalcinit();
 	while (flag) {
         cv::Mat frame = camera.take_pic();
         if (frame.empty()) break;
         cv::Mat frameL = camera.get_pic(LEFT);
-        detect.callNetworks(frameL);
-        sleep(1);
+        vector<cv::Rect2d> roi_vec = detect.callNetworks(frameL);
+
+        if(!roi_vec.empty())
+        {
+            for(cv::Rect2d roi: roi_vec)
+            {
+                double dist = calculateDistance(seperatePhoto(camera.get_pic(COMPLETE)),roi);
+                std::cout << "Distance: " << dist << std::endl;
+            }
+        }
         //camera.save_pic(LEFT, "imageL.jpg");
         //camera.save_pic(RIGHT, "imageR.jpg");
 	}

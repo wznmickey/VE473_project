@@ -27,11 +27,12 @@ Car_Detection::Car_Detection()
  * @brief postprocess the network output, find the car block
  * @return TODO: to be determined
 */
-void Car_Detection::findCars(Mat& frame, const vector<Mat>& outs, float confThreshold) {
+vector<cv::Rect2d> Car_Detection::findCars(Mat& frame, const vector<Mat>& outs, float confThreshold) {
     vector<int> classIds;
     vector<float> confidences;
     vector<Rect> boxes;
-    vector<Point> centers;    
+    vector<Point> centers;  
+    vector<cv::Rect2d> res = vector<cv::Rect2d>();  
 
     for (size_t i = 0; i < outs.size(); ++i) {
         // Scan through all the bounding boxes output from the network and keep only the
@@ -60,16 +61,17 @@ void Car_Detection::findCars(Mat& frame, const vector<Mat>& outs, float confThre
                 std::cout << "car detected at:";
                 std::cout << "left: " << left << ", top: " << top
                     << ", width: " << width << ", height: " << height << endl;
+                res.push_back(cv::Rect2d(left,top,width,height));
             }
         }
     }
-    
+    return res;
 }
 
 /**
  * @return TODO: to be determined
 */
-void Car_Detection::callNetworks(Mat & frame) {
+vector<cv::Rect2d> Car_Detection::callNetworks(Mat & frame) {
     // Initialize the parameters
     int inpWidth = 416;  // Width of network's input image
     int inpHeight = 416; // Height of network's input image
@@ -87,7 +89,7 @@ void Car_Detection::callNetworks(Mat & frame) {
     net.forward(outs, getOutputsNames(net));
     
     //return findCars(frame, outs);
-    findCars(frame, outs);
+    return findCars(frame, outs);
 }
 
 /**

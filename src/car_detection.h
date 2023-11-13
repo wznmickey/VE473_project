@@ -19,15 +19,10 @@ class Car_Detection
     public:
         Car_Detection();
         ~Car_Detection(){};
-        void callNetworks(Mat & frame);
+        vector<cv::Rect2d> callNetworks(Mat & frame);
         vector<String> getOutputsNames(const Net& net);
     private:
-        void findCars(Mat& frame, const vector<Mat>& outs, float confThreshold = 0.3);
+        vector<cv::Rect2d> findCars(Mat& frame, const vector<Mat>& outs, float confThreshold = 0.3);
         Net net;
 };
-
-
-
-
-
 #endif
