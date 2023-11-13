@@ -22,7 +22,7 @@ cfg::Config config;
 int main()
 {
     signal(SIGINT, signal_callback_handler);
-    Camera camera("/home/zjche/Desktop/VE473_project/video/1.avi");
+    Camera camera("/home/pi/473_test/hit_car_right.mp4");
     //Camera camera(0);
     Car_Detection detect;
     //Init distcalc
