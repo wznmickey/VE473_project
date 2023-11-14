@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.10)
+project(VE473P)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_PREFIX_PATH /opt/intel/openvino/runtime/cmake/)
+set(OURPATH /opt/intel/openvino/runtime/lib/intel64)
+find_package( OpenCV REQUIRED )
+find_package( ngraph REQUIRED)
+find_package(InferenceEngine REQUIRED)
+find_package( OpenVINO REQUIRED)
+include_directories(/opt/intel/openvino/runtime/include)
+include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(${ngraph_INCLUDE_DIRS})
+include_directories(${InferenceEngine_INCLUDE_DIRS})
+include_directories(${OpenVINO_INCLUDE_DIRS})
+
+add_executable(main test.cpp)
+target_link_libraries(  main  ${OURPATH}/libopenvino.so ${OpenCV_LIBS} )
