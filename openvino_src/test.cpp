@@ -1,143 +1,127 @@
-#include <inference_engine.hpp>
+#include <cstddef>
 #include <iostream>
+#include <opencv2/core/types.hpp>
 #include <opencv2/opencv.hpp>
+#include <openvino/openvino.hpp>
 #include <sys/time.h>
 #include <unistd.h>
 
-using namespace InferenceEngine;
-
 /**
  * @return float: time difference in ms
-*/
-float timeDiff(struct timeval start, struct timeval end) {
-    float sdiff = (end.tv_sec - start.tv_sec) * 1000.0f;
-    float usdiff = (end.tv_usec - start.tv_usec) / 1000.0f;
+ */
+float timeDiff( struct timeval start, struct timeval end )
+{
+    float sdiff  = ( end.tv_sec - start.tv_sec ) * 1000.0f;
+    float usdiff = ( end.tv_usec - start.tv_usec ) / 1000.0f;
     return sdiff + usdiff;
 }
 
-static Blob::Ptr MywrapMat2Blob(const cv::Mat& mat) {
-    size_t channels = mat.channels();
-    size_t height = mat.size().height;
-    size_t width = mat.size().width;
+class DetectionModel
+{
 
-    size_t strideH = mat.step.buf[0];
-    size_t strideW = mat.step.buf[1];
+private:
+    size_t            channel;
+    size_t            height;
+    size_t            width;
+    ov::Core          core;
+    ov::CompiledModel compiled_model;
+    ov::InferRequest  infer_request;
+    ov::Tensor        input_tensor;
+    struct timeval    startTime;
+    struct timeval    endTime;
 
-    bool is_dense = strideW == channels && strideH == channels * width;
-
-    // OPENVINO_ASSERT(is_dense, "Doesn't support conversion from not dense cv::Mat");
-
-    TensorDesc tDesc(Precision::FP32, {1, channels, height, width}, Layout::NHWC);
-
-    return make_shared_blob<float>(tDesc, (float*)mat.data);
-}
-
-
-int main() {
-
-    struct timeval startTime;
-    struct timeval endTime;
-
-    try {
-
-        gettimeofday(&startTime, NULL);
-
-        // load inference engine plugin
-        InferenceEngine::Core ie;
-        
-        // Load Model
-        std::string modelPath = "../vehicle-detection-0200/FP32/vehicle-detection-0200.xml";
-        std::string modelBinPath = "../vehicle-detection-0200/FP32/vehicle-detection-0200.bin";
-        CNNNetwork network = ie.ReadNetwork(modelPath, modelBinPath);
-        
-        // Get Input & Output Infomation
-        InputsDataMap inputInfo(network.getInputsInfo());
-        OutputsDataMap outputInfo(network.getOutputsInfo());
-        
-        // Prepare the Network
-        std::string inputName;
-        for (const auto &inputInfoItem : inputInfo) {
-            inputName = inputInfoItem.first;
-        }
-        // Create the Network
-        ExecutableNetwork executableNetwork = ie.LoadNetwork(network, "CPU");
-        InferRequest inferRequest = executableNetwork.CreateInferRequest();
-        Blob::Ptr inputBlob = inferRequest.GetBlob(inputName);
-
-        gettimeofday(&endTime, NULL);
-        std::cout << "Load Model Time: " << timeDiff(startTime, endTime) << std::endl;
-
-        // Load input image and resize
-        cv::Mat image = cv::imread("../car.jpg");
-        std::cout << "image size at read: " << image.size() << std::endl;
-        cv::resize(image, image, cv::Size(inputBlob->getTensorDesc().getDims()[3], inputBlob->getTensorDesc().getDims()[2]));
-        cv::Mat resultImage = image.clone();
-        // cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
-        // cv::transpose(image, image);
-        auto input_data = inputBlob->buffer().as<PrecisionTrait<Precision::FP32>::value_type *>();
-        for (size_t c = 0; c < 3; c++) {
-            for (size_t h = 0; h < 256; h++) {
-                for (size_t w = 0; w < 256; w++) {
-                    input_data[c * 256 * 256 + h * 256 + w] = image.at<cv::Vec3b>(h,w)[c];
+    void imageConvert( cv::Mat &input )
+    {
+        cv::Mat blob_image;
+        cv::resize( input, blob_image, cv::Size( width, height ) );
+        float *image_data = input_tensor.data< float >( );
+        for ( size_t c = 0; c < channel; c++ )
+        {
+            for ( size_t h = 0; h < height; h++ )
+            {
+                for ( size_t w = 0; w < width; w++ )
+                {
+                    size_t index         = c * width * height + h * width + w;
+                    image_data [ index ] = blob_image.at< cv::Vec3b >( h, w ) [ c ];
                 }
             }
         }
+    }
 
-        // Blob::Ptr imgBlob = MywrapMat2Blob(image.clone());
-        //if (imgBlob->getTensorDesc().getPrecision() != Precision::FP32) {
-        //    imgBlob->getTensorDesc().setPrecision(Precision::FP32);
-        //}
-        // inferRequest.SetBlob(inputName, imgBlob);
-        // auto input_data = inputBlob->buffer().as<PrecisionTrait<Precision::FP32>::value_type *>();
-        // ::copy(image.data, input_data);
-        // std::cout << "image size: " << image.total() * image.channels() << std::endl;
-        // std::copy(image.data, image.data + image.total() * image.channels(), input_data);
+public:
+    DetectionModel( )
+    {
+        gettimeofday( &startTime, nullptr );
+        std::string modelPath = "../vehicle-detection-0200/FP32/vehicle-detection-0200.xml";
+        core;
+        compiled_model = core.compile_model( modelPath, "CPU" );
+        infer_request  = compiled_model.create_infer_request( );
 
-        // Network Inference
-        gettimeofday(&startTime, NULL);
-        inferRequest.Infer();
-        gettimeofday(&endTime, NULL);
-        std::cout << "Inference Time: " << timeDiff(startTime, endTime) << std::endl;
+        gettimeofday( &endTime, nullptr );
+        std::cout << "Load Model Time: " << timeDiff( startTime, endTime ) << std::endl;
 
-        // Get output
-        std::string outputName;
-        for (const auto &outputInfoItem : outputInfo) {
-            outputName = outputInfoItem.first;
-        }
-        Blob::Ptr outputBlob = inferRequest.GetBlob(outputName);
+        input_tensor           = infer_request.get_input_tensor( 0 );
+        ov::Shape tensor_shape = input_tensor.get_shape( );
+        channel                = tensor_shape [ 1 ];
+        height                 = tensor_shape [ 2 ];
+        width                  = tensor_shape [ 3 ];
+        return;
+    }
+    std::vector< cv::Rect2i > detect( cv::Mat &img )
+    {
+        cv::Mat resultImage = img.clone( );
 
-        // Process output
-        float *outputData = outputBlob->buffer().as<float *>();
+        imageConvert( img );
+        gettimeofday( &startTime, NULL );
 
-        const auto outputDims = outputBlob->getTensorDesc().getDims();
-        const int numClasses = outputDims[1]; // Number of classes
-        const int outputHeight = outputDims[2]; // Grid height
-        const int outputWidth = outputDims[3]; // Grid width
+        infer_request.infer( );
+        gettimeofday( &endTime, NULL );
+        std::cout << "Inference Time: " << timeDiff( startTime, endTime ) << std::endl;
+        auto   output1    = infer_request.get_output_tensor( 0 );
+        float *outputData = output1.data< float >( );
+
+        const auto outputDims   = output1.get_shape( );
+        const int  outputHeight = outputDims [ 2 ]; // Grid height
 
         // Calculate the number of detections
-        const int numDetections = outputHeight;
-
-        for (int i = 0; i < numDetections; ++i) {
+        const int                 numDetections = outputHeight;
+        std::vector< cv::Rect2i > ret;
+        for ( int i = 0; i < numDetections; ++i )
+        {
             // Draw rectangle according to the info in output
-            int x1 = int(outputData[i * 7 + 3] * image.cols);
-            int y1 = int(outputData[i * 7 + 4] * image.rows);
-            int x2 = int(outputData[i * 7 + 5] * image.cols);
-            int y2 = int(outputData[i * 7 + 6] * image.rows);
-            for (int j = 0; j < 7 ; j++)
-                std::cout << outputData[i*7+j] << " ";
-            std::cout << std::endl; 
-            float confidence = (outputData[i*7 + 2]);
+            int x1 = int( outputData [ i * 7 + 3 ] * img.cols );
+            int y1 = int( outputData [ i * 7 + 4 ] * img.rows );
+            int x2 = int( outputData [ i * 7 + 5 ] * img.cols );
+            int y2 = int( outputData [ i * 7 + 6 ] * img.rows );
+            ret.emplace_back( x1, y1, x2 - x1, y2 - y1 );
+            for ( int j = 0; j < 7; j++ )
+                std::cout << outputData [ i * 7 + j ] << " ";
+            std::cout << std::endl;
+            float confidence = ( outputData [ i * 7 + 2 ] );
             std::cout << "conf: " << confidence << std::endl;
-            if (confidence < 0.15) break;
-            cv::rectangle(resultImage, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0), 2);
+            if ( confidence < 0.15 )
+                break;
+            cv::rectangle( resultImage, cv::Point( x1, y1 ), cv::Point( x2, y2 ), cv::Scalar( 0, 255, 0 ), 2 );
         }
-        cv::imwrite("result_cpp.jpg", resultImage);
+        cv::imwrite( "result_cpp.jpg", resultImage );
 
+        return ret;
+    }
+};
 
-    } catch (const std::exception &error) {
-        std::cerr << error.what() << std::endl;
+int main( )
+{
+    try
+    {
+        // Load Model
+        DetectionModel detectionModel;
+        cv::Mat        src = cv::imread( "../car.jpg", 1 );
+        detectionModel.detect( src );
+    }
+    catch ( const std::exception &error )
+    {
+        std::cerr << error.what( ) << std::endl;
         return 1;
     }
-    
     return 0;
 }
