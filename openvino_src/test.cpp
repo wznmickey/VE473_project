@@ -46,8 +46,8 @@ int main() {
         InferenceEngine::Core ie;
         
         // Load Model
-        std::string modelPath = "/home/pi/intel/vehicle-detection-0200/FP32/vehicle-detection-0200.xml";
-        std::string modelBinPath = "/home/pi/intel/vehicle-detection-0200/FP32/vehicle-detection-0200.bin";
+        std::string modelPath = "../vehicle-detection-0200/FP32/vehicle-detection-0200.xml";
+        std::string modelBinPath = "../vehicle-detection-0200/FP32/vehicle-detection-0200.bin";
         CNNNetwork network = ie.ReadNetwork(modelPath, modelBinPath);
         
         // Get Input & Output Infomation
@@ -60,7 +60,7 @@ int main() {
             inputName = inputInfoItem.first;
         }
         // Create the Network
-        ExecutableNetwork executableNetwork = ie.LoadNetwork(network, "MYRIAD");
+        ExecutableNetwork executableNetwork = ie.LoadNetwork(network, "CPU");
         InferRequest inferRequest = executableNetwork.CreateInferRequest();
         Blob::Ptr inputBlob = inferRequest.GetBlob(inputName);
 
@@ -68,7 +68,7 @@ int main() {
         std::cout << "Load Model Time: " << timeDiff(startTime, endTime) << std::endl;
 
         // Load input image and resize
-        cv::Mat image = cv::imread("car.jpg");
+        cv::Mat image = cv::imread("../car.jpg");
         std::cout << "image size at read: " << image.size() << std::endl;
         cv::resize(image, image, cv::Size(inputBlob->getTensorDesc().getDims()[3], inputBlob->getTensorDesc().getDims()[2]));
         cv::Mat resultImage = image.clone();
@@ -78,7 +78,7 @@ int main() {
         for (size_t c = 0; c < 3; c++) {
             for (size_t h = 0; h < 256; h++) {
                 for (size_t w = 0; w < 256; w++) {
-                    input_data[c * 256 * 256 + h * 256 + w] = image.at<cv::Vec<float, 3>>(w, h)[c];
+                    input_data[c * 256 * 256 + h * 256 + w] = image.at<cv::Vec3b>(h,w)[c];
                 }
             }
         }
