@@ -88,6 +88,11 @@ public:
         std::vector< cv::Rect2i > ret;
         for ( int i = 0; i < numDetections; ++i )
         {
+            float confidence = ( outputData [ i * 7 + 2 ] );
+            if ( confidence < 0.15 )
+                continue;
+            std::cout << "conf: " << confidence << std::endl;
+
             // Draw rectangle according to the info in output
             int x1 = int( outputData [ i * 7 + 3 ] * img.cols );
             int y1 = int( outputData [ i * 7 + 4 ] * img.rows );
@@ -97,10 +102,6 @@ public:
             for ( int j = 0; j < 7; j++ )
                 std::cout << outputData [ i * 7 + j ] << " ";
             std::cout << std::endl;
-            float confidence = ( outputData [ i * 7 + 2 ] );
-            std::cout << "conf: " << confidence << std::endl;
-            if ( confidence < 0.15 )
-                break;
             cv::rectangle( resultImage, cv::Point( x1, y1 ), cv::Point( x2, y2 ), cv::Scalar( 0, 255, 0 ), 2 );
         }
         cv::imwrite( "result_cpp.jpg", resultImage );
@@ -111,17 +112,28 @@ public:
 
 int main( )
 {
+    struct timeval startTime;
+    struct timeval endTime;
+
+    gettimeofday( &startTime, nullptr );
+
     try
     {
         // Load Model
         DetectionModel detectionModel;
-        cv::Mat        src = cv::imread( "../car.jpg", 1 );
-        detectionModel.detect( src );
+        for ( int i = 0; i < 100; i++ )
+        {
+            cv::Mat src = cv::imread( "../car.jpg", 1 );
+            detectionModel.detect( src );
+        }
     }
     catch ( const std::exception &error )
     {
         std::cerr << error.what( ) << std::endl;
         return 1;
     }
+    gettimeofday( &endTime, nullptr );
+    std::cout << "Load Model Time: " << timeDiff( startTime, endTime ) << std::endl;
+
     return 0;
 }

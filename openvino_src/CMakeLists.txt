@@ -13,6 +13,10 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${ngraph_INCLUDE_DIRS})
 include_directories(${InferenceEngine_INCLUDE_DIRS})
 include_directories(${OpenVINO_INCLUDE_DIRS})
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+add_executable(main_1 test_multiple.cpp)
+target_link_libraries(  main_1  ${OURPATH}/libopenvino.so ${OpenCV_LIBS} )
 
-add_executable(main test.cpp)
-target_link_libraries(  main  ${OURPATH}/libopenvino.so ${OpenCV_LIBS} )
+add_executable(main_2 test_single.cpp)
+target_link_libraries(  main_2  ${OURPATH}/libopenvino.so ${OpenCV_LIBS} )
+
