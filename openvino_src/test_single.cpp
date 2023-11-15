@@ -52,9 +52,9 @@ public:
     DetectionModel( )
     {
         gettimeofday( &startTime, nullptr );
-        std::string modelPath = "../vehicle-detection-0200/FP32/vehicle-detection-0200.xml";
+        std::string modelPath = "/home/pi/intel/vehicle-detection-0200/FP32/vehicle-detection-0200.xml";
         core;
-        compiled_model = core.compile_model( modelPath, "CPU" );
+        compiled_model = core.compile_model( modelPath, "MYRIAD" );
         infer_request  = compiled_model.create_infer_request( );
 
         gettimeofday( &endTime, nullptr );
