@@ -11,6 +11,7 @@
 #include "car_detection.h"
 #include <unistd.h>
 #include "distance.h"
+#include "Detection.h"
 
 bool flag = true;
 void signal_callback_handler(int signum) {
@@ -24,22 +25,36 @@ int main()
     signal(SIGINT, signal_callback_handler);
     Camera camera("/home/pi/473_test/hit_car_right.mp4");
     //Camera camera(0);
-    Car_Detection detect;
+    //Car_Detection detect;
     //Init distcalc
+    Detection detection;
+
     distcalcinit();
 	while (flag) {
-        cv::Mat frame = camera.take_pic();
+        cv::Mat frame;
+        for (int i = 0; i < 15 ; i++)
+        {
+            frame = camera.take_pic();
+        }
         if (frame.empty()) break;
         cv::Mat frameL = camera.get_pic(LEFT);
-        vector<cv::Rect2d> roi_vec = detect.callNetworks(frameL);
+        //vector<cv::Rect2d> roi_vec = detect.callNetworks(frameL);
+        detection.detect( frameL );
+        vector<cv::Rect2i> roi_vec = detection.get( );
 
         if(!roi_vec.empty())
         {
-            for(cv::Rect2d roi: roi_vec)
+            for(cv::Rect2i roi: roi_vec)
             {
                 double dist = calculateDistance(seperatePhoto(camera.get_pic(COMPLETE)),roi);
                 std::cout << "Distance: " << dist << std::endl;
+                detection.drawRectText(roi,std::to_string((int)dist));
             }
+            detection.ImgSave("/home/pi/VE473_project/img/result.png");
+            // char q;
+            // std::cin.get(q);
+            // if (q == 'a') return 0;
+            sleep(4);
         }
         //camera.save_pic(LEFT, "imageL.jpg");
         //camera.save_pic(RIGHT, "imageR.jpg");

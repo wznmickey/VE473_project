@@ -107,7 +107,7 @@ cv::imwrite("show.jpg",show);
                 int id = i*width + j;
                 // cout<< i<<" " <<j<<" " <<height <<" " <<width<<endl;
                 if (!dispData[id])  continue;  //防止0除
-                depthData[id] = ushort( (float)fx *baseline / ((float)dispData[id]) );
+                depthData[id] = ushort( (float)fx * (float) baseline / ((float) dispData[id]) );
                 
                 if (i>=roi.y && i<=roi.y+roi.height && j>=roi.x && j<=roi.x+roi.width)
                 {
@@ -119,6 +119,6 @@ cv::imwrite("show.jpg",show);
             }
         }
     // }
-    cout<<"WE counted" <<countedPoint<<endl;
+    cout<<"WE counted " <<countedPoint<<endl;
     return finalDistance/countedPoint; //
 }
