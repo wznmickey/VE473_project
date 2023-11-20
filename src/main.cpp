@@ -28,11 +28,16 @@ int main()
     //Car_Detection detect;
     //Init distcalc
     Detection detection;
-
+    int frameCount = 0;
+    int fourcc = cv::VideoWriter::fourcc('X', 'V', 'I', 'D');
+    double fps = 30.0;
+    cv::Size frameSize(640, 480);
+    cv::VideoWriter out("output.avi", fourcc, fps, frameSize);
     distcalcinit();
+
 	while (flag) {
         cv::Mat frame;
-        for (int i = 0; i < 15 ; i++)
+        for (int i = 0; i < 1 ; i++)
         {
             frame = camera.take_pic();
         }
@@ -48,16 +53,21 @@ int main()
             {
                 double dist = calculateDistance(seperatePhoto(camera.get_pic(COMPLETE)),roi);
                 std::cout << "Distance: " << dist << std::endl;
-                detection.drawRectText(roi,std::to_string((int)dist));
+                detection.drawRectText(roi, std::to_string(dist).substr(0,4));
             }
             detection.ImgSave("/home/pi/VE473_project/img/result.png");
+
+            std::cout << "Writing " << frameCount << "-th frame...\n";
+            frameCount +=1;
+            out.write(detection.getImage());
             // char q;
             // std::cin.get(q);
             // if (q == 'a') return 0;
-            sleep(4);
+            // sleep(2);
         }
         //camera.save_pic(LEFT, "imageL.jpg");
         //camera.save_pic(RIGHT, "imageR.jpg");
 	}
+    out.release();
 	return 0;
 }

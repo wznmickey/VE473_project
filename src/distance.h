@@ -19,5 +19,6 @@ void distcalcinit(void);
 vector<Mat> seperatePhoto(cv::Mat image);
 double calculateDistance(vector<Mat> vec,cv::Rect2d roi);
 
+double calculateDistanceSIFT(vector<Mat> vec, cv::Rect2d roi);
 
 #endif
