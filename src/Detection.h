@@ -35,6 +35,7 @@ public:
     void detect( cv::Mat &img );
     void              drawRectText( cv::Rect2i roi, std::string text);
     void              ImgSave(std::string savepath);
+    cv::Mat&          getImage();
 };
 
 #endif

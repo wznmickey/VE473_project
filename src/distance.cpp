@@ -54,17 +54,17 @@ vector<Mat> seperatePhoto(cv::Mat image)
 }
 
 
-double calculateDistance(vector<Mat> vec,cv::Rect2d roi)
+double calculateDistance(vector<Mat> vec, cv::Rect2d roi)
 {
     auto temp = vec[0].clone();
-    cv::rectangle(temp, roi, cv::Scalar(0.2), 5);
-    cv::imwrite("./tmp.jpg", temp);
+    // cv::rectangle(temp, roi, cv::Scalar(0.2), 5);
+    cv::imwrite("./gray.jpg", temp);
 
     cv::Mat disparityMap;
 
     cv::Ptr<cv::StereoBM> stereo = cv::StereoBM::create();
 
-    stereo->setBlockSize(5);        // 设置匹配块大小，尺寸必须是奇数，一般选择范围在5-21之间
+    stereo->setBlockSize(7);        // 设置匹配块大小，尺寸必须是奇数，一般选择范围在5-21之间
     stereo->setMinDisparity(0);      // 设置最小视差值，默认为0
     stereo->setNumDisparities(16);   // 设置视差搜索范围，默认为16，即最大视差值为16
     stereo->setPreFilterSize(5);     // 设置预处理滤波器的尺寸，默认为5
@@ -80,8 +80,8 @@ double calculateDistance(vector<Mat> vec,cv::Rect2d roi)
 
     Mat ans = disparityMap.clone();
     Mat show = ans.clone();
-cv::normalize(show, show,0,255,NORM_MINMAX,CV_8U);
-cv::imwrite("show.jpg",show);    
+    cv::normalize(show, show,0,255,NORM_MINMAX,CV_8U);
+    cv::imwrite("show.jpg",show);    
 
 
     int type = disparityMap.type();
@@ -100,7 +100,8 @@ cv::imwrite("show.jpg",show);
 
         short int* dispData = (short int*)disparityMap.data;
         ushort* depthData = (ushort*)ans.data;
-        for (int i = 0; i < height; i++)
+    priority_queue<float,vector<float>,greater<float>>q;
+	for (int i = 0; i < height; i++)
         {
             for (int j = 0; j < width; j++)
             {
@@ -111,14 +112,112 @@ cv::imwrite("show.jpg",show);
                 
                 if (i>=roi.y && i<=roi.y+roi.height && j>=roi.x && j<=roi.x+roi.width)
                 {
-                    finalDistance+=depthData[id];
+                    // finalDistance += depthData[id];
+                    if ((float)fx * (float) baseline / ((float) dispData[id])<1) continue;
                     countedPoint++;
+                    q.push((float)fx * (float) baseline / ((float) dispData[id]));
                 }
                 
                 // cout<<depthData[id]<<endl;
             }
         }
-    // }
-    cout<<"WE counted " <<countedPoint<<endl;
-    return finalDistance/countedPoint; //
+    int mid = countedPoint/2;
+    int sm = mid - countedPoint/10;
+    int lm = mid + countedPoint/10;
+    int finalCount = 0;
+    for (int i=0;i<countedPoint;i++)
+    {
+        if (q.empty()){
+            break;
+        }
+        auto temp = q.top();
+        q.pop();
+        if (i>sm && i<lm){
+            finalDistance +=temp;
+            finalCount++;
+        }
+    }
+    cout<<"Points counted: " <<finalCount<<endl;
+    
+return finalDistance/finalCount; //
+}
+
+
+double calculateDistanceSIFT(vector<Mat> vec, cv::Rect2d roi)
+{
+
+    cv::Mat disparityMap;
+
+    Ptr<ORB> orb = ORB::create();
+    Mat gray1,gray2;
+    gray1 = vec[0].clone();
+    gray2 = vec[1].clone();
+    
+    // cvtColor(vec[0],gray1,COLOR_RGB2GRAY);
+    // cvtColor(vec[1],gray2,COLOR_RGB2GRAY);
+    printf("Detecting feature points...\n");
+    vector<KeyPoint> feature_points1,feature_points2;
+    // do Orient_FAST detect Keypoint
+    orb->detect(gray1,feature_points1);
+    orb->detect(gray2,feature_points2);
+    printf("Computing descriptors...\n");
+
+    Mat descriptor1,descriptor2;
+    orb->compute(gray1,feature_points1,descriptor1);
+    orb->compute(gray2,feature_points2,descriptor2);
+    printf("Matching pairs...\n");
+    BFMatcher matcher(NORM_HAMMING); //O(N^2)
+    vector<DMatch> pairs;
+    matcher.match(descriptor1,descriptor2,pairs);
+    printf("DMatch contains the matched points like (%d in img1, %d in img2) their distance is %.3f (in Hamming Norm).\n"
+           ,pairs[0].queryIdx,pairs[0].trainIdx,pairs[0].distance);
+    Mat canvas;
+    drawMatches(vec[0],feature_points1,vec[1],feature_points2,pairs,canvas);
+
+    // You can also filter the match to generate
+    vector<DMatch> good;
+    double min_dist = 100000;
+    // compute the minimum of the distance
+    for(const DMatch&m:pairs)
+    {
+        if(m.distance < min_dist) min_dist = m.distance;
+    }
+    // filter
+    for(const DMatch&m:pairs)
+    {
+        if(m.distance < max(min_dist*2,30.))
+        {
+            good.push_back(m);
+        }
+    }
+    drawMatches(vec[0],feature_points1,vec[1],feature_points2,good,canvas);
+    imwrite("../good_match.jpg",canvas);
+
+    drawKeypoints(vec[0],feature_points1,canvas,Scalar::all(-1),DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+    imwrite("../keypoints.jpg",canvas);
+
+    cv::Mat ans = vec[0].clone();
+    ans.setTo(0);
+    ans.convertTo(ans, CV_8UC1);
+    ans = Mat(Size(vec[0].size()),CV_8UC1);
+    cout<<ans.size()<<endl;
+    // cout<<ans;
+    cout<<ans.at<uchar>(Point(1,1))<<endl;;
+
+    int countedPoint = 0;
+    double distanceSum = 0.0;
+    for (auto i=0;i<good.size();i++)
+    {
+        Point x;
+        x.x = feature_points1[good[i].queryIdx].pt.x;
+        x.y = feature_points1[good[i].queryIdx].pt.y;
+
+        if (x.y>=roi.y && x.y<=roi.y+roi.height && x.x>=roi.x && x.x<=roi.x+roi.width) {
+            distanceSum += good[i].distance;
+            countedPoint++;  
+        }
+        ans.at<uchar>(x) = good[i].distance;
+    }
+    distanceSum = distanceSum / countedPoint;
+    return distanceSum;
 }

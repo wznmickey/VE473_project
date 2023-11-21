@@ -6,3 +6,6 @@ video/
 src/model/
 src/main
 main
+
+CMakeCache.txt
+CMakeFiles/

@@ -31,7 +31,7 @@ void Detection::imageConvert( cv::Mat &input )
 void Detection::drawRectText( cv::Rect2i roi, std::string text)
 {
     cv::rectangle(this->img, roi, cv::Scalar(0, 0, 255), 2);
-    cv::Point position(roi.x+10,roi.y+roi.height+20);
+    cv::Point position(roi.x+10,roi.y+roi.height/2+20);
     int fontFace = cv::FONT_HERSHEY_SIMPLEX;
     double fontScale = 0.8;
     cv::Scalar fontColor(255, 0, 0);
@@ -102,6 +102,10 @@ void Detection::detect( cv::Mat &img )
     rows = img.rows;
     imageConvert( img );
     infer_request.start_async( );
+}
+
+cv::Mat& Detection::getImage() {
+    return this->img;
 }
 
 
