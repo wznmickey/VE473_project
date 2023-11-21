@@ -27,11 +27,12 @@ private:
     size_t            cols;
     size_t            rows;
     cv::Mat           img;
+    std::vector< cv::Rect2i > ret;
     void              imageConvert( cv::Mat &input );
 
 public:
     Detection( );
-    std::vector< cv::Rect2i > get( );
+    std::vector< cv::Rect2i >&  get( );
     void detect( cv::Mat &img );
     void              drawRectText( cv::Rect2i roi, std::string text);
     void              ImgSave(std::string savepath);

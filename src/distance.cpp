@@ -57,8 +57,8 @@ vector<Mat> seperatePhoto(cv::Mat image)
 double calculateDistance(vector<Mat> vec,cv::Rect2d roi)
 {
     auto temp = vec[0].clone();
-    cv::rectangle(temp, roi, cv::Scalar(0.2), 5);
-    cv::imwrite("./tmp.jpg", temp);
+    // cv::rectangle(temp, roi, cv::Scalar(0.2), 5);
+    // cv::imwrite("./tmp.jpg", temp);
 
     cv::Mat disparityMap;
 
@@ -80,8 +80,8 @@ double calculateDistance(vector<Mat> vec,cv::Rect2d roi)
 
     Mat ans = disparityMap.clone();
     Mat show = ans.clone();
-cv::normalize(show, show,0,255,NORM_MINMAX,CV_8U);
-cv::imwrite("show.jpg",show);    
+    cv::normalize(show, show,0,255,NORM_MINMAX,CV_8U);
+    cv::imwrite("show.jpg",show);    
 
 
     int type = disparityMap.type();
@@ -91,7 +91,7 @@ cv::imwrite("show.jpg",show);
     float baseline = 100; //基线距离650mm
     double finalDistance = 0;
     auto countedPoint = 0;
-    std::cout << "type = " << type << ", CV_8U = " << CV_8U << std::endl;
+    // std::cout << "type = " << type << ", CV_8U = " << CV_8U << std::endl;
     // if (type == CV_8U) {
 
         const float PI = 3.14159265358;
@@ -119,6 +119,6 @@ cv::imwrite("show.jpg",show);
             }
         }
     // }
-    cout<<"WE counted " <<countedPoint<<endl;
+    cout<<"We counted " <<countedPoint<<endl;
     return finalDistance/countedPoint; //
 }

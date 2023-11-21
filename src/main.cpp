@@ -31,8 +31,10 @@ int main()
 
     distcalcinit();
 	while (flag) {
+        struct timeval startTime;
+        gettimeofday(&startTime, NULL);
         cv::Mat frame;
-        for (int i = 0; i < 15 ; i++)
+        for (int i = 0; i < 1 ; i++)
         {
             frame = camera.take_pic();
         }
@@ -40,22 +42,31 @@ int main()
         cv::Mat frameL = camera.get_pic(LEFT);
         //vector<cv::Rect2d> roi_vec = detect.callNetworks(frameL);
         detection.detect( frameL );
+        std::vector<cv::Mat> separated_photo = seperatePhoto(camera.get_pic(COMPLETE));
         vector<cv::Rect2i> roi_vec = detection.get( );
+        struct timeval endTime;
+        gettimeofday(&endTime, NULL);
+        std::cout << "Time for inference a frame: " << timeDiff(startTime, endTime) << std::endl;
 
         if(!roi_vec.empty())
         {
             for(cv::Rect2i roi: roi_vec)
             {
-                double dist = calculateDistance(seperatePhoto(camera.get_pic(COMPLETE)),roi);
+                struct timeval start1;
+                gettimeofday(&start1, NULL);
+                double dist = calculateDistance(separated_photo, roi);
                 std::cout << "Distance: " << dist << std::endl;
                 detection.drawRectText(roi,std::to_string((int)dist));
+                struct timeval end1;
+                gettimeofday(&end1, NULL);
+                std::cout << "Time for processing a car: " << timeDiff(start1, end1) << std::endl;
             }
             detection.ImgSave("/home/pi/VE473_project/img/result.png");
             // char q;
             // std::cin.get(q);
             // if (q == 'a') return 0;
-            sleep(4);
         }
+        sleep(2);
         //camera.save_pic(LEFT, "imageL.jpg");
         //camera.save_pic(RIGHT, "imageR.jpg");
 	}

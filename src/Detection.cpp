@@ -49,7 +49,7 @@ void Detection::ImgSave(std::string savepath)
 Detection::Detection( )
 {
     gettimeofday( &startTime, nullptr );
-    std::string modelPath = "/home/pi/intel/vehicle-detection-0200/FP32/vehicle-detection-0200.xml";
+    std::string modelPath = "/home/pi/intel/vehicle-detection-0200/FP16/vehicle-detection-0200.xml";
     core;
     compiled_model = core.compile_model( modelPath, "MYRIAD" );
     infer_request  = compiled_model.create_infer_request( );
@@ -64,43 +64,51 @@ Detection::Detection( )
     width                  = tensor_shape [ 3 ];
     return;
 }
-std::vector< cv::Rect2i > Detection::get( )
+std::vector< cv::Rect2i >& Detection::get( )
 {
-    std::vector< cv::Rect2i > ret;
+    ret.clear();
     infer_request.wait( );
+    gettimeofday(&endTime, NULL);
+    std::cout << "Async process time: " << timeDiff(startTime, endTime) << std::endl;
+
+    gettimeofday(&startTime, NULL);
     auto       output1      = infer_request.get_output_tensor( 0 );
     float     *outputData   = output1.data< float >( );
     const auto outputDims   = output1.get_shape( );
-    const int  outputHeight = outputDims [ 2 ]; // Grid height
+    const int  numDetections = outputDims [ 2 ];
 
-    // Calculate the number of detections
-    const int numDetections = outputHeight;
-    for ( int i = 0; i < numDetections; ++i )
+    int i;
+    for ( i = 0; i < numDetections; ++i )
     {
         float confidence = ( outputData [ i * 7 + 2 ] );
-        if ( confidence < 0.15 )
-            continue;
-        std::cout << "conf: " << confidence << std::endl;
+        if ( confidence < 0.3 ) break;
+        // std::cout << "conf: " << confidence << std::endl;
         // Draw rectangle according to the info in output
         int x1 = int( outputData [ i * 7 + 3 ] * cols );
         int y1 = int( outputData [ i * 7 + 4 ] * rows );
         int x2 = int( outputData [ i * 7 + 5 ] * cols );
         int y2 = int( outputData [ i * 7 + 6 ] * rows );
         ret.emplace_back( x1, y1, x2 - x1, y2 - y1 );
-        //drawRect(cv::Rect2i(x1, y1, x2 - x1, y2 - y1));
-        for ( int j = 0; j < 7; j++ )
-            std::cout << outputData [ i * 7 + j ] << " ";
+        // drawRectText(cv::Rect2i(x1, y1, x2 - x1, y2 - y1));
+        // for ( int j = 0; j < 7; j++ )
+        //     std::cout << outputData [ i * 7 + j ] << " ";
     }
-    ImgSave("/home/pi/VE473_project/img/result.png");
+    // ImgSave("/home/pi/VE473_project/img/result.png");
+    gettimeofday(&endTime, NULL);
+    std::cout << "Get inference output: " << timeDiff(startTime, endTime) << ", with " << i <<
+        " numbers of outputs.\n";
     return ret;
 }
 
 void Detection::detect( cv::Mat &img )
 {
+
     this->img = img.clone();
     cols = img.cols;
     rows = img.rows;
+    gettimeofday(&startTime, NULL);
     imageConvert( img );
+
     infer_request.start_async( );
 }
 
