@@ -29,7 +29,7 @@ int main()
     //Init distcalc
     Detection detection;
 
-    distcalcinit();
+    DistanceCalc distances;
 	while (flag) {
         struct timeval startTime;
         gettimeofday(&startTime, NULL);
@@ -42,7 +42,8 @@ int main()
         cv::Mat frameL = camera.get_pic(LEFT);
         //vector<cv::Rect2d> roi_vec = detect.callNetworks(frameL);
         detection.detect( frameL );
-        std::vector<cv::Mat> separated_photo = seperatePhoto(camera.get_pic(COMPLETE));
+        std::vector<cv::Mat> separated_photo = distances.seperatePhoto(camera.get_pic(COMPLETE));
+        distances.calculateMap(separated_photo);
         vector<cv::Rect2i> roi_vec = detection.get( );
         struct timeval endTime;
         gettimeofday(&endTime, NULL);
@@ -54,7 +55,7 @@ int main()
             {
                 struct timeval start1;
                 gettimeofday(&start1, NULL);
-                double dist = calculateDistance(separated_photo, roi);
+                double dist = distances.calculateDistance(separated_photo, roi);
                 std::cout << "Distance: " << dist << std::endl;
                 detection.drawRectText(roi,std::to_string((int)dist));
                 struct timeval end1;

@@ -15,9 +15,27 @@
 using namespace cv;
 using namespace std;
 
-void distcalcinit(void);
-vector<Mat> seperatePhoto(cv::Mat image);
-double calculateDistance(vector<Mat> vec,cv::Rect2d roi);
 
+
+class DistanceCalc 
+{
+
+private:
+    Mat left_camera_matrix;
+    Mat left_dist_coeffs;
+    Mat right_camera_matrix;
+    Mat right_dist_coeffs;
+    cv::Ptr<cv::StereoBM> stereo;
+    cv::Mat disparityMap;
+    ushort* depthData;
+    short int* dispData;
+
+public:
+    DistanceCalc();
+    void distcalcinit(void);
+    vector<Mat> seperatePhoto(cv::Mat image);
+    double calculateDistance(vector<Mat> vec,cv::Rect2d roi);
+    void calculateMap(vector<Mat> vec);
+};
 
 #endif

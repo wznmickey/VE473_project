@@ -1,12 +1,14 @@
 #include "distance.h"
 
+static int min2(int a, int b){
+    return a<b?a:b;
+}
 
-Mat left_camera_matrix;
-Mat left_dist_coeffs;
-Mat right_camera_matrix;
-Mat right_dist_coeffs;
+static int max2(int a, int b) {
+    return a>b?a:b;
+}
 
-void distcalcinit(void)
+void DistanceCalc::distcalcinit(void)
 {
     //Init distance calc
     cv::FileStorage left_setting("left.yml", cv::FileStorage::READ);
@@ -20,7 +22,19 @@ void distcalcinit(void)
     right_setting.release();
 }
 
-vector<Mat> seperatePhoto(cv::Mat image)
+DistanceCalc::DistanceCalc() {
+    this->stereo = cv::StereoBM::create();
+    this->stereo->setBlockSize(5);        // 设置匹配块大小，尺寸必须是奇数，一般选择范围在5-21之间
+    this->stereo->setMinDisparity(0);      // 设置最小视差值，默认为0
+    this->stereo->setNumDisparities(16);   // 设置视差搜索范围，默认为16，即最大视差值为16
+    this->stereo->setPreFilterSize(5);     // 设置预处理滤波器的尺寸，默认为5
+    this->stereo->setPreFilterCap(31);     // 设置预处理滤波器的最大灰度差值，默认为31
+    this->stereo->setTextureThreshold(10); // 设置纹理阈值，默认为10，用于筛选边缘区域
+    this->stereo->setUniquenessRatio(15);  // 设置唯一性比率，默认为15，用于筛选匹配的唯一性
+    this->distcalcinit();
+}
+
+vector<Mat> DistanceCalc::seperatePhoto(cv::Mat image)
 {
     int width = image.cols;
     int height = image.rows;
@@ -54,66 +68,55 @@ vector<Mat> seperatePhoto(cv::Mat image)
 }
 
 
-double calculateDistance(vector<Mat> vec,cv::Rect2d roi)
-{
-    auto temp = vec[0].clone();
-    // cv::rectangle(temp, roi, cv::Scalar(0.2), 5);
-    // cv::imwrite("./tmp.jpg", temp);
-
-    cv::Mat disparityMap;
-
-    cv::Ptr<cv::StereoBM> stereo = cv::StereoBM::create();
-
-    stereo->setBlockSize(5);        // 设置匹配块大小，尺寸必须是奇数，一般选择范围在5-21之间
-    stereo->setMinDisparity(0);      // 设置最小视差值，默认为0
-    stereo->setNumDisparities(16);   // 设置视差搜索范围，默认为16，即最大视差值为16
-    stereo->setPreFilterSize(5);     // 设置预处理滤波器的尺寸，默认为5
-    stereo->setPreFilterCap(31);     // 设置预处理滤波器的最大灰度差值，默认为31
-    stereo->setTextureThreshold(10); // 设置纹理阈值，默认为10，用于筛选边缘区域
-    stereo->setUniquenessRatio(15);  // 设置唯一性比率，默认为15，用于筛选匹配的唯一性
-
+void DistanceCalc::calculateMap(vector<Mat> vec) {
     vec[0].convertTo(vec[0], CV_8UC1);
-
     vec[1].convertTo(vec[1], CV_8UC1);
-
-    stereo->compute(vec[0], vec[1], disparityMap);
+    this->stereo->compute(vec[0], vec[1], this->disparityMap);
 
     Mat ans = disparityMap.clone();
     Mat show = ans.clone();
     cv::normalize(show, show,0,255,NORM_MINMAX,CV_8U);
     cv::imwrite("show.jpg",show);    
 
-
     int type = disparityMap.type();
+    // std::cout << "type = " << type << ", CV_8U = " << CV_8U << std::endl;
     ans.convertTo(ans, CV_16UC1);
+
+    this->dispData = (short int*)disparityMap.data;
+    this->depthData = (ushort*)ans.data;
+}
+
+double DistanceCalc::calculateDistance(vector<Mat> vec,cv::Rect2d roi)
+{
+    // auto temp = vec[0].clone();
+    // cv::rectangle(temp, roi, cv::Scalar(0.2), 5);
+    // cv::imwrite("./tmp.jpg", temp);
 
     float fx = 21;
     float baseline = 100; //基线距离650mm
     double finalDistance = 0;
     auto countedPoint = 0;
-    // std::cout << "type = " << type << ", CV_8U = " << CV_8U << std::endl;
     // if (type == CV_8U) {
 
         const float PI = 3.14159265358;
         int height = disparityMap.rows;
         int width = disparityMap.cols;
 
-        short int* dispData = (short int*)disparityMap.data;
-        ushort* depthData = (ushort*)ans.data;
-        for (int i = 0; i < height; i++)
+
+        int range_h = min2(height, roi.y + roi.height);
+        int range_w = min2(width, roi.x + roi.width);
+
+        for (int i = max2(0,roi.y); i < range_h; i++)
         {
-            for (int j = 0; j < width; j++)
+            for (int j = max2(0,roi.x); j < range_w; j++)
             {
                 int id = i*width + j;
                 // cout<< i<<" " <<j<<" " <<height <<" " <<width<<endl;
                 if (!dispData[id])  continue;  //防止0除
                 depthData[id] = ushort( (float)fx * (float) baseline / ((float) dispData[id]) );
                 
-                if (i>=roi.y && i<=roi.y+roi.height && j>=roi.x && j<=roi.x+roi.width)
-                {
-                    finalDistance+=depthData[id];
-                    countedPoint++;
-                }
+                finalDistance+=depthData[id];
+                countedPoint++;
                 
                 // cout<<depthData[id]<<endl;
             }
