@@ -26,7 +26,7 @@ int main() {
     while (true) {
         device.getGyro(&gr, &gp, &gy);
         cout << "Gyroscope Readings: X: " << gr << ", Y: " << gp << ", Z: " << gy << "\n";
-        if (gr > 50) {
+        if (gr > 200 || gp >200) {
             cout << "Turning" << "\n";
             // Enter performance mode
         } else {
