@@ -1,51 +1,54 @@
 #include <MPU6050.h>
+#include <chrono>
 
 using namespace std;
 
-MPU6050 device(0x68);
+MPU6050 gyroscope(0x68);
 
-int main() {
+bool GyroTurn(MPU6050& gyroscope) {
 	float ax, ay, az, gr, gp, gy; //Variables to store the accel, gyro and angle values
 
 	sleep(1); //Wait for the MPU6050 to stabilize
 
-
 	//Read the current yaw angle
-	device.calc_yaw = true;
-/*
-	for (int i = 0; i < 40; i++) {
-        device.getGyro(&gr, &gp, &gy);
-        cout << "Gyroscope Readings: X: " << gr << ", Y: " << gp << ", Z: " << gy << "\n";
-        if (gr > 100) {
-            // Enter performance mode
-            cout << "Handlebar turning too fast!" << "\n";
-        }
-		usleep(1000000); //1 sec
+	gyroscope.calc_yaw = true;
+
+	while(true) {
+		//gyroscope.getAngle(0, &gr);
+		//gyroscope.getAngle(1, &gp);
+		//gyroscope.getAngle(2, &gy);
+		gyroscope.getGyro(&gr, &gp, &gy);
+		cout << "Gyroscope Readings: X: " << gr << ", Y: " << gp << ", Z: " << gy << "\n";
+		if (gr > 200 || gy > 200 || gr < -200 ||  gy < -200) {
+		// Check accelerator to enter Performance mode
+            		cout << "Performance mode" << "\n"; // Enter performance mode
+            		
+            		auto start = chrono::high_resolution_clock::now();
+            		
+            		
+            		while (true) {
+            		// Performance mode last for 3 seconds
+            		auto end = chrono::high_resolution_clock::now();
+            		chrono::duration<double> elapsed = end - start;
+            		if (elapsed.count() >= 3.0) {
+            			cout << "Go normal" << "\n"; // Back to efficency mode
+            			break;
+            		}
+        	} 
+        	continue; // Go back to the main loop
+        	}
+        
+		usleep(100000); //0.25sec
 	}
- */
-    while (true) {
-        device.getGyro(&gr, &gp, &gy);
-        cout << "Gyroscope Readings: X: " << gr << ", Y: " << gp << ", Z: " << gy << "\n";
-        if (gr > 200 || gp >200) {
-            cout << "Turning" << "\n";
-            // Enter performance mode
-        } else {
-            cout << "Normal" << "\n";
-            // Efficiency mode
-        }
-        usleep(1000000); //1 sec
-    }
-
-
 /*
-    //Get the current accelerometer values
-	device.getAccel(&ax, &ay, &az);
-	std::cout << "Accelerometer Readings: X: " << ax << ", Y: " << ay << ", Z: " << az << "\n";
-
-	//Get the current gyroscope values
-
+	//Get the current accelerometer values
+	gyroscope.getAccel(&ax, &ay, &az);
+	cout << "Accelerometer Readings: X: " << ax << ", Y: " << ay << ", Z: " << az << "\n";
 */
 	return 0;
 }
 
-
+//int main() {
+//	sleep(1);
+//	GyroTurn(gyroscope);
+//}
