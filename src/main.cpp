@@ -12,10 +12,15 @@
 #include <unistd.h>
 #include "distance.h"
 #include "Detection.h"
+#include "Gyro.h"
+#include "buzzer.h"
 
 bool flag = true;
+int ForceExit = 0;
 void signal_callback_handler(int signum) {
-   flag = false;
+    ForceExit ++;
+    if (ForceExit >=5) exit(0);
+    flag = false;
 }
 
 cfg::Config config;
@@ -28,9 +33,14 @@ int main()
     //Car_Detection detect;
     //Init distcalc
     Detection detection;
+    Gyro gyro;
 
     DistanceCalc distances;
 	while (flag) {
+        buzzer(1000);
+        // gyro.GyroTurn();
+        sleep(1);
+        continue;
         struct timeval startTime;
         gettimeofday(&startTime, NULL);
         cv::Mat frame;
@@ -67,7 +77,7 @@ int main()
             // std::cin.get(q);
             // if (q == 'a') return 0;
         }
-        sleep(2);
+        //sleep(2);
         //camera.save_pic(LEFT, "imageL.jpg");
         //camera.save_pic(RIGHT, "imageR.jpg");
 	}

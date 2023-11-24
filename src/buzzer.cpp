@@ -1,8 +1,8 @@
-#include <iostream>
-#include <wiringPi.h> // Library for Raspberry Pi GPIO access
-#include <unistd.h>   // Library for sleep function
+#include "buzzer.h"
 
-bool buzzer() {
+const static int HERZ = 1000;
+
+bool buzzer(unsigned long int milisecond) {
     // Set up wiringPi
     wiringPiSetupGpio();
 
@@ -13,14 +13,16 @@ bool buzzer() {
     pinMode(buzzer_pin, OUTPUT);
 
     try {
-        while (true) {
+        for(unsigned long int i = 0; i < milisecond/1000*HERZ; i++) {
             // Turn on the buzzer
             digitalWrite(buzzer_pin, HIGH);
-            delay(1000);  // Buzzer on for 1 second
+            //delayMicroseconds(1000000/HERZ/2);  // Buzzer on for 1 second
+            usleep(1000000/HERZ/2);
 
             // Turn off the buzzer
             digitalWrite(buzzer_pin, LOW);
-            delay(1000);  // Buzzer off for 1 second
+            //delayMicroseconds(1000000/HERZ/2);  // Buzzer off for 1 second
+            usleep(1000000/HERZ/2);
         }
     } catch (...) {
         // Cleanup GPIO
