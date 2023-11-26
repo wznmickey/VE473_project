@@ -28,7 +28,7 @@ cfg::Config config;
 int main()
 {
     signal(SIGINT, signal_callback_handler);
-    Camera camera("/home/pi/473_test/hit_car_right.mp4");
+    Camera camera("/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/VE473_project/distancesrc/all_code/good_videos/hit_car_right.mp4");
     //Camera camera(0);
     //Car_Detection detect;
     //Init distcalc
@@ -72,7 +72,7 @@ int main()
                 gettimeofday(&end1, NULL);
                 std::cout << "Time for processing a car: " << timeDiff(start1, end1) << std::endl;
             }
-            detection.ImgSave("/home/pi/VE473_project/img/result.png");
+            detection.ImgSave("result.png");
             // char q;
             // std::cin.get(q);
             // if (q == 'a') return 0;
