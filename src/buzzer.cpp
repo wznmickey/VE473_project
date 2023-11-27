@@ -2,7 +2,42 @@
 
 const static int HERZ = 1000;
 
-bool buzzer(unsigned long int milisecond) {
+
+Buzzer::Buzzer()
+{
+    // Set up wiringPi
+    wiringPiSetupGpio();
+
+    // Set the GPIO pin number
+    this->buzzer_pin = 18;
+
+    // Set up the GPIO pin as an output
+    pinMode(buzzer_pin, OUTPUT);
+}
+
+Buzzer::~Buzzer()
+{
+    this->isrunning = false;
+    this->buzzthread.join();
+}
+
+void work(Buzzer* buzzer)
+{
+    while(buzzer->isrunning)
+    {
+        if (buzzer->buzztimems > 0)
+        {
+            
+        }
+        else
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+}
+
+bool Buzzer::buzz(unsigned long int milisecond)
+{
     // Set up wiringPi
     wiringPiSetupGpio();
 

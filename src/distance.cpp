@@ -1,4 +1,5 @@
 #include "distance.h"
+#include "config.h"
 
 static int min2(int a, int b){
     return a<b?a:b;
@@ -51,8 +52,8 @@ vector<Mat> DistanceCalc::seperatePhoto(cv::Mat image)
 
     cv::undistort( left_half, left_half.clone(), left_camera_matrix, left_dist_coeffs);
     cv::undistort( right_half, right_half.clone(), right_camera_matrix, right_dist_coeffs);
-    cv::cvtColor(left_half, left_half,COLOR_BGR2GRAY);
-    cv::cvtColor(right_half, right_half,COLOR_BGR2GRAY);
+    // cv::cvtColor(left_half, left_half,COLOR_BGR2GRAY);
+    // cv::cvtColor(right_half, right_half,COLOR_BGR2GRAY);
     ans.push_back(left_half.clone());
     ans.push_back(right_half.clone());
 
@@ -69,21 +70,62 @@ vector<Mat> DistanceCalc::seperatePhoto(cv::Mat image)
 
 
 void DistanceCalc::calculateMap(vector<Mat> vec) {
-    vec[0].convertTo(vec[0], CV_8UC1);
-    vec[1].convertTo(vec[1], CV_8UC1);
-    this->stereo->compute(vec[0], vec[1], this->disparityMap);
+int              setNumDisparities    = 3;
+int              setPreFilterCap      = 4;
+int              setUniquenessRatio   = 15;
+int              setsgbmWinSize       = 10;
+// int              setP1                = 10;
+// int              setP2                = 50;
+int              setSpeckleWindowSize = 85;
+int              setSpeckleRange      = 88;
+int              setDisp12MaxDiff     = -1;
 
-    Mat ans = disparityMap.clone();
+
+    cv::Ptr< cv::StereoSGBM > sgbm = cv::StereoSGBM::create( 0, setNumDisparities );
+    sgbm->setPreFilterCap( setPreFilterCap );
+    // int SADWindowSize = 9;
+    // int sgbmWinSize   = SADWindowSize > 0 ? SADWindowSize : 3;
+    sgbm->setBlockSize( setsgbmWinSize );
+    // int cn =3;
+    sgbm->setP1( setsgbmWinSize * 8 );
+    sgbm->setP2( setsgbmWinSize * 32 );
+    sgbm->setUniquenessRatio( setUniquenessRatio );
+    sgbm->setSpeckleWindowSize( setSpeckleWindowSize );
+    sgbm->setSpeckleRange( setSpeckleRange );
+    sgbm->setDisp12MaxDiff( setDisp12MaxDiff );
+    sgbm->setMode( cv::StereoSGBM::MODE_SGBM_3WAY );
+    // cout << vec [ 0 ].type()<<endl;
+    // vec [ 0 ].convertTo( vec [ 0 ], CV_8UC1 );
+
+    // vec [ 1 ].convertTo( vec [ 1 ], CV_8UC1 );
+
+    sgbm->compute( vec [ 0 ], vec [ 1 ], disparityMap );
+
+    ans = disparityMap.clone();
     Mat show = ans.clone();
     cv::normalize(show, show,0,255,NORM_MINMAX,CV_8U);
     cv::imwrite("show.jpg",show);    
 
     int type = disparityMap.type();
-    // std::cout << "type = " << type << ", CV_8U = " << CV_8U << std::endl;
+    std::cout << "type = " << type << ", CV_8U = " << CV_8U << std::endl;
     ans.convertTo(ans, CV_16UC1);
-
+    // cout<<disparityMap<<endl;
     this->dispData = (short int*)disparityMap.data;
     this->depthData = (ushort*)ans.data;
+}
+
+double getBlockPropotion(cv::Rect2d roi) {
+    using namespace cfg;
+    struct Config conf;
+
+    // default : 640 * 480
+    int width = conf.width/2;
+    int height = conf.height;
+
+    // calculate the block size
+    double area = roi.area();
+    double propotion = area / float(width * height);
+    return propotion;
 }
 
 double DistanceCalc::calculateDistance(vector<Mat> vec,cv::Rect2d roi)
@@ -92,10 +134,14 @@ double DistanceCalc::calculateDistance(vector<Mat> vec,cv::Rect2d roi)
     // cv::rectangle(temp, roi, cv::Scalar(0.2), 5);
     // cv::imwrite("./tmp.jpg", temp);
 
+    double prop = getBlockPropotion(roi);
+    if (prop >= 0.75) return (10 / prop);
+    if (prop < 0.05) return 100;
+
     float fx = 21;
-    float baseline = 100; //基线距离650mm
+    float baseline = 60; // distance between 2 cam: 60 mm
     double finalDistance = 0;
-    auto countedPoint = 0;
+    double countedPoint = 0;
     // if (type == CV_8U) {
 
         const float PI = 3.14159265358;
@@ -112,7 +158,8 @@ double DistanceCalc::calculateDistance(vector<Mat> vec,cv::Rect2d roi)
             {
                 int id = i*width + j;
                 // cout<< i<<" " <<j<<" " <<height <<" " <<width<<endl;
-                if (!dispData[id])  continue;  //防止0除
+                // if (!dispData[id])  continue;  //防止0除
+                if (dispData[id]==0) continue;
                 depthData[id] = ushort( (float)fx * (float) baseline / ((float) dispData[id]) );
                 
                 finalDistance+=depthData[id];

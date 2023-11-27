@@ -29,6 +29,7 @@ private:
     cv::Mat disparityMap;
     ushort* depthData;
     short int* dispData;
+    cv::Mat ans;
 
 public:
     DistanceCalc();
@@ -36,6 +37,7 @@ public:
     vector<Mat> seperatePhoto(cv::Mat image);
     double calculateDistance(vector<Mat> vec,cv::Rect2d roi);
     void calculateMap(vector<Mat> vec);
+    double getBlockPropotion(cv::Rect2d roi);
 };
 
 #endif

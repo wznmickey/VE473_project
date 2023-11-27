@@ -63,7 +63,7 @@ void Camera::split_pic(void)
     if(frame.empty()) std::cerr << "Frame is empty! Can not split.\n";
     cv::Rect left_roi(0, 0, config.width/2, config.height);
     frameLeft = frame(left_roi);
-    cv::Rect right_roi(config.width/2, 0, config.width/2-1, config.height-1);
+    cv::Rect right_roi(config.width/2, 0, config.width/2, config.height);
     frameRight = frame(right_roi);
 }
 

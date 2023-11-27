@@ -28,23 +28,24 @@ cfg::Config config;
 int main()
 {
     signal(SIGINT, signal_callback_handler);
-    Camera camera("/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/VE473_project/distancesrc/all_code/good_videos/hit_car_right.mp4");
+    Camera camera("/home/pi/videos/good_videos/hit_car_right.mp4");
     //Camera camera(0);
     //Car_Detection detect;
     //Init distcalc
     Detection detection;
     Gyro gyro;
+    Buzzer buzzer;
 
     DistanceCalc distances;
 	while (flag) {
-        buzzer(1000);
+        // buzzer(1000);
         // gyro.GyroTurn();
-        sleep(1);
-        continue;
+        // sleep(1);
+        // continue;
         struct timeval startTime;
         gettimeofday(&startTime, NULL);
         cv::Mat frame;
-        for (int i = 0; i < 1 ; i++)
+        for (int i = 0; i < 5 ; i++)
         {
             frame = camera.take_pic();
         }
@@ -52,7 +53,9 @@ int main()
         cv::Mat frameL = camera.get_pic(LEFT);
         //vector<cv::Rect2d> roi_vec = detect.callNetworks(frameL);
         detection.detect( frameL );
-        std::vector<cv::Mat> separated_photo = distances.seperatePhoto(camera.get_pic(COMPLETE));
+        std::vector<cv::Mat> separated_photo;
+        separated_photo.emplace_back(camera.get_pic(LEFT));
+        separated_photo.emplace_back(camera.get_pic(RIGHT));
         distances.calculateMap(separated_photo);
         vector<cv::Rect2i> roi_vec = detection.get( );
         struct timeval endTime;
@@ -67,7 +70,9 @@ int main()
                 gettimeofday(&start1, NULL);
                 double dist = distances.calculateDistance(separated_photo, roi);
                 std::cout << "Distance: " << dist << std::endl;
-                detection.drawRectText(roi,std::to_string((int)dist));
+                if (dist < 30) buzzer.buzz(500);
+
+                detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
                 struct timeval end1;
                 gettimeofday(&end1, NULL);
                 std::cout << "Time for processing a car: " << timeDiff(start1, end1) << std::endl;
@@ -77,7 +82,7 @@ int main()
             // std::cin.get(q);
             // if (q == 'a') return 0;
         }
-        //sleep(2);
+        sleep(2);
         //camera.save_pic(LEFT, "imageL.jpg");
         //camera.save_pic(RIGHT, "imageR.jpg");
 	}
