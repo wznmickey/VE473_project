@@ -25,16 +25,15 @@ Mat     left_dist_coeffs;
 Mat     right_camera_matrix;
 Mat     right_dist_coeffs;
 
-int setNumDisparities  = 3;
-int setPreFilterCap    = 25;
-int setUniquenessRatio = 15;
-int setsgbmWinSize     = 15;
+int              setNumDisparities    = 3;
+int              setPreFilterCap      = 4;
+int              setUniquenessRatio   = 15;
+int              setsgbmWinSize       = 10;
 // int              setP1                = 10;
 // int              setP2                = 50;
-int              setSpeckleWindowSize = 40;
-int              setSpeckleRange      = 69;
-int              setDisp12MaxDiff     = -1;
-cv::VideoCapture video;
+int              setSpeckleWindowSize = 85;
+int              setSpeckleRange      = 88;
+int              setDisp12MaxDiff     = -1;cv::VideoCapture video;
 
 vector< Mat > seperatePhoto( cv::Mat image )
 {
