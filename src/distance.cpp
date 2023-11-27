@@ -57,29 +57,20 @@ vector<Mat> DistanceCalc::seperatePhoto(cv::Mat image)
     ans.push_back(left_half.clone());
     ans.push_back(right_half.clone());
 
-    // cv::namedWindow("Left Half", cv::WINDOW_NORMAL);
-    // cv::imshow("Left Half", ans[0]);
-
-    // cv::namedWindow("Right Half", cv::WINDOW_NORMAL);
-    // cv::imshow("Right Half", ans[1]);
-
-    // cv::waitKey(0);
-
     return ans;
 }
 
 
 void DistanceCalc::calculateMap(vector<Mat> vec) {
-int              setNumDisparities    = 3;
-int              setPreFilterCap      = 4;
-int              setUniquenessRatio   = 15;
-int              setsgbmWinSize       = 10;
-// int              setP1                = 10;
-// int              setP2                = 50;
-int              setSpeckleWindowSize = 85;
-int              setSpeckleRange      = 88;
-int              setDisp12MaxDiff     = -1;
-
+    int              setNumDisparities    = 3;
+    int              setPreFilterCap      = 4;
+    int              setUniquenessRatio   = 15;
+    int              setsgbmWinSize       = 10;
+    // int              setP1                = 10;
+    // int              setP2                = 50;
+    int              setSpeckleWindowSize = 85;
+    int              setSpeckleRange      = 88;
+    int              setDisp12MaxDiff     = -1;
 
     cv::Ptr< cv::StereoSGBM > sgbm = cv::StereoSGBM::create( 0, setNumDisparities );
     sgbm->setPreFilterCap( setPreFilterCap );
@@ -107,14 +98,14 @@ int              setDisp12MaxDiff     = -1;
     cv::imwrite("show.jpg",show);    
 
     int type = disparityMap.type();
-    std::cout << "type = " << type << ", CV_8U = " << CV_8U << std::endl;
+    // std::cout << "type = " << type << ", CV_8U = " << CV_8U << std::endl;
     ans.convertTo(ans, CV_16UC1);
     // cout<<disparityMap<<endl;
     this->dispData = (short int*)disparityMap.data;
     this->depthData = (ushort*)ans.data;
 }
 
-double getBlockPropotion(cv::Rect2d roi) {
+double DistanceCalc::getBlockPropotion(cv::Rect2d roi) {
     using namespace cfg;
     struct Config conf;
 
@@ -142,33 +133,30 @@ double DistanceCalc::calculateDistance(vector<Mat> vec,cv::Rect2d roi)
     float baseline = 60; // distance between 2 cam: 60 mm
     double finalDistance = 0;
     double countedPoint = 0;
-    // if (type == CV_8U) {
 
-        const float PI = 3.14159265358;
-        int height = disparityMap.rows;
-        int width = disparityMap.cols;
+    const float PI = 3.14159265358;
+    int height = disparityMap.rows;
+    int width = disparityMap.cols;
+    int range_h = min2(height, roi.y + roi.height);
+    int range_w = min2(width, roi.x + roi.width);
 
-
-        int range_h = min2(height, roi.y + roi.height);
-        int range_w = min2(width, roi.x + roi.width);
-
-        for (int i = max2(0,roi.y); i < range_h; i++)
+    for (int i = max2(0,roi.y); i < range_h; i++)
+    {
+        for (int j = max2(0,roi.x); j < range_w; j++)
         {
-            for (int j = max2(0,roi.x); j < range_w; j++)
-            {
-                int id = i*width + j;
-                // cout<< i<<" " <<j<<" " <<height <<" " <<width<<endl;
-                // if (!dispData[id])  continue;  //防止0除
-                if (dispData[id]==0) continue;
-                depthData[id] = ushort( (float)fx * (float) baseline / ((float) dispData[id]) );
-                
-                finalDistance+=depthData[id];
-                countedPoint++;
-                
-                // cout<<depthData[id]<<endl;
-            }
+            int id = i*width + j;
+            // cout<< i<<" " <<j<<" " <<height <<" " <<width<<endl;
+            // if (!dispData[id])  continue;  //防止0除
+            if (dispData[id]==0) continue;
+            depthData[id] = ushort( (float)fx * (float) baseline / ((float) dispData[id]) );
+            
+            finalDistance+=depthData[id];
+            countedPoint++;
+            
+            // cout<<depthData[id]<<endl;
         }
+    }
     // }
-    cout<<"We counted " <<countedPoint<<endl;
+    cout<<"Point coundted in the rectangle: " <<countedPoint<<endl;
     return finalDistance/countedPoint; //
 }

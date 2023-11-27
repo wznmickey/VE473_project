@@ -75,7 +75,7 @@ int main()
                 detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
                 struct timeval end1;
                 gettimeofday(&end1, NULL);
-                std::cout << "Time for processing a car: " << timeDiff(start1, end1) << std::endl;
+                // std::cout << "Time for processing a car: " << timeDiff(start1, end1) << std::endl;
             }
             detection.ImgSave("result.png");
             // char q;
