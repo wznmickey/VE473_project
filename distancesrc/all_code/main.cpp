@@ -14,7 +14,7 @@
 #include <opencv2/videoio.hpp>
 #include <stdio.h>
 #include <vector>
-#include <matplotlibcpp.h>
+// #include <matplotlibcpp.h>
 
 
 using namespace cv;
@@ -25,15 +25,14 @@ Mat     left_dist_coeffs;
 Mat     right_camera_matrix;
 Mat     right_dist_coeffs;
 
-int setBlockSize       = 12;
-int setNumDisparities  = 16;
-int setPreFilterCap    = 31;
+int setNumDisparities  = 3;
+int setPreFilterCap    = 25;
 int setUniquenessRatio = 15;
-int setsgbmWinSize     = 9;
+int setsgbmWinSize     = 15;
 // int              setP1                = 10;
 // int              setP2                = 50;
-int              setSpeckleWindowSize = 100;
-int              setSpeckleRange      = 32;
+int              setSpeckleWindowSize = 40;
+int              setSpeckleRange      = 69;
 int              setDisp12MaxDiff     = -1;
 cv::VideoCapture video;
 
@@ -141,7 +140,7 @@ void calculateDistance( vector< Mat > vec )
     cv::Mat disparityMap;
 
     // int                       numberOfDisparities = ( ( vec [ 0 ].cols / 8 ) + 15 ) & -16;
-    cv::Ptr< cv::StereoSGBM > sgbm = cv::StereoSGBM::create( 0, setNumDisparities, setBlockSize );
+    cv::Ptr< cv::StereoSGBM > sgbm = cv::StereoSGBM::create( 0, setNumDisparities );
     sgbm->setPreFilterCap( setPreFilterCap );
     // int SADWindowSize = 9;
     // int sgbmWinSize   = SADWindowSize > 0 ? SADWindowSize : 3;
@@ -167,16 +166,16 @@ void calculateDistance( vector< Mat > vec )
 
     countData1( ans );
 
-    disparityMap.convertTo( disparityMap, CV_8UC1 );
+    disparityMap.convertTo( disparityMap, CV_8UC1, 3,17);
     //  cout<<disparityMap<<endl;
     countData2( disparityMap );
 
-    applyColorMap( disparityMap, ans, COLORMAP_RAINBOW );
+    // applyColorMap( disparityMap, ans, COLORMAP_RAINBOW );
 
-    // cv::imshow( "temp", disparityMap );
+    cv::imshow( "temp", disparityMap );
 
     // resize( ans, tempp, Size( 480, 480 ) );
-    cv::imshow( "temp", ans );
+    // cv::imshow( "temp", ans );
 
     cv::waitKey( 15 );
     // int type = disparityMap.type( );
@@ -220,7 +219,6 @@ void init( )
 {
     namedWindow( "ABC" );
     // 在创建窗体中创建一个滑动条
-    createTrackbar( "setBlockSize", "ABC", &setBlockSize, 35 );
     createTrackbar( "setNumDisparities", "ABC", &setNumDisparities, 100 );
     // createTrackbar( "setP1", "ABC", &setP1, 100 );
     // createTrackbar( "setP2", "ABC", &setP2, 100 );
