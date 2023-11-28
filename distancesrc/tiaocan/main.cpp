@@ -3,6 +3,7 @@
 #include <bits/stdc++.h>
 #include <iostream>
 #include <map>
+#include <matplotlibcpp.h>
 #include <opencv2/core.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/hal/interface.h>
@@ -14,7 +15,7 @@
 #include <opencv2/videoio.hpp>
 #include <stdio.h>
 #include <vector>
-#include <matplotlibcpp.h>
+
 bool isPainted = false;
 
 using namespace cv;
@@ -26,15 +27,16 @@ Mat     left_dist_coeffs;
 Mat     right_camera_matrix;
 Mat     right_dist_coeffs;
 
-int              setNumDisparities    = 3;
-int              setPreFilterCap      = 4;
-int              setUniquenessRatio   = 15;
-int              setsgbmWinSize       = 10;
+int setNumDisparities  = 3;
+int setPreFilterCap    = 4;
+int setUniquenessRatio = 15;
+int setsgbmWinSize     = 10;
 // int              setP1                = 10;
 // int              setP2                = 50;
 int              setSpeckleWindowSize = 85;
-int              setSpeckleRange      = 88;
-int              setDisp12MaxDiff     = -1;cv::VideoCapture video;
+int              setSpeckleRange      = 1;
+int              setDisp12MaxDiff     = -1;
+cv::VideoCapture video;
 
 vector< Mat > seperatePhoto( cv::Mat image )
 {
@@ -89,8 +91,8 @@ vector< Mat > seperatePhoto( cv::Mat image )
 int countData1( cv::Mat x )
 {
     map< short, int > ans;
-    vector<int> ya;
-    vector<int> xa;
+    vector< int >     ya;
+    vector< int >     xa;
     for ( int i = 0; i < x.rows; i++ )
     {
         for ( int j = 0; j < x.cols; j++ )
@@ -105,28 +107,30 @@ int countData1( cv::Mat x )
 
     for ( auto i : ans )
     {
-        if (i.first<=0) continue;
+        if ( i.first <= 0 )
+            continue;
         if ( ( ( int ) i.first ) > maxAns )
             maxAns = i.first;
-        while (ya.size()<=i.first)
+        while ( ya.size( ) <= i.first )
         {
-            ya.push_back(0);
+            ya.push_back( 0 );
         }
-        ya[i.first] = i.second;
+        ya [ i.first ] = i.second;
         // cout << (int)i.first << " " << i.second << endl;
     }
-    for (int i=0;i<ya.size();i++)
+    for ( int i = 0; i < ya.size( ); i++ )
     {
-        xa.push_back(i);
+        xa.push_back( i );
     }
     // plt::close();
-    plt::ion();
-    plt::clf();
-   
-    plt::plot(xa, ya);  
-    if (!isPainted) plt::show();
-    isPainted= true;
-    plt::pause(0.01);
+    plt::ion( );
+    plt::clf( );
+
+    plt::plot( xa, ya );
+    if ( ! isPainted )
+        plt::show( );
+    isPainted = true;
+    plt::pause( 0.01 );
     cout << "1 maxAns" << maxAns << endl;
     return maxAns;
 }
@@ -158,11 +162,11 @@ void calculateDistance( vector< Mat > vec )
     Mat tempp;
     // resize(vec[0], tempp, Size(480,480));
     cv::imshow( "origin", vec [ 0 ] );
-
+    cv::imshow( "origin2", vec [ 1 ] );
     cv::Mat disparityMap;
 
     // int                       numberOfDisparities = ( ( vec [ 0 ].cols / 8 ) + 15 ) & -16;
-    cv::Ptr< cv::StereoSGBM > sgbm = cv::StereoSGBM::create( 0, setNumDisparities );
+    cv::Ptr< cv::StereoSGBM > sgbm = cv::StereoSGBM::create( 0, 16 * setNumDisparities );
     sgbm->setPreFilterCap( setPreFilterCap );
     // int SADWindowSize = 9;
     // int sgbmWinSize   = SADWindowSize > 0 ? SADWindowSize : 3;
@@ -188,7 +192,7 @@ void calculateDistance( vector< Mat > vec )
 
     auto temppp = countData1( ans );
 
-    disparityMap.convertTo( disparityMap, CV_8UC1,(float)254 / (float)temppp);
+    disparityMap.convertTo( disparityMap, CV_8UC1, ( float ) 254 / ( float ) temppp );
     //  cout<<disparityMap<<endl;
     // countData2( disparityMap );
 
@@ -241,17 +245,17 @@ void init( )
 {
     namedWindow( "ABC" );
     // 在创建窗体中创建一个滑动条
-    createTrackbar( "setNumDisparities", "ABC", &setNumDisparities, 200 );
+    createTrackbar( "setNumDisparities", "ABC", &setNumDisparities, 10 );
     // createTrackbar( "setP1", "ABC", &setP1, 100 );
     // createTrackbar( "setP2", "ABC", &setP2, 100 );
 
     createTrackbar( "setPreFilterCap", "ABC", &setPreFilterCap, 200 );
     createTrackbar( "setsgbmWinSize", "ABC", &setsgbmWinSize, 200 );
-    createTrackbar( "setUniquenessRatio", "ABC", &setUniquenessRatio, 200 );
+    createTrackbar( "setUniquenessRatio", "ABC", &setUniquenessRatio, 30 );
 
-    createTrackbar( "setSpeckleWindowSize", "ABC", &setSpeckleWindowSize, 200 );
-    createTrackbar( "setSpeckleRange", "ABC", &setSpeckleRange, 200 );
-
+    createTrackbar( "setSpeckleWindowSize", "ABC", &setSpeckleWindowSize, 250 );
+    createTrackbar( "setSpeckleRange", "ABC", &setSpeckleRange, 5 );
+    createTrackbar( "setDisp12MaxDiff", "ABC", &setDisp12MaxDiff, 200 );
     waitKey( 0 );
     return;
 }
