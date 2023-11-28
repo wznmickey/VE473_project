@@ -13,6 +13,8 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/videoio.hpp>
+#include <opencv2/ximgproc/disparity_filter.hpp>
+#include <opencv4/opencv2/highgui.hpp>
 #include <stdio.h>
 #include <vector>
 
@@ -88,7 +90,7 @@ vector< Mat > seperatePhoto( cv::Mat image )
 
     return ans;
 }
-int countData1( cv::Mat x )
+int countData1( cv::Mat x, Rect roi )
 {
     map< short, int > ans;
     vector< int >     ya;
@@ -97,10 +99,13 @@ int countData1( cv::Mat x )
     {
         for ( int j = 0; j < x.cols; j++ )
         {
-            auto temp = x.at< short >( i, j );
-            if ( ! ans.contains( temp ) )
-                ans.insert( { temp, 0 } );
-            ans [ temp ] += 1;
+            if ( i >= roi.y && i <= roi.y + roi.height && j >= roi.x && j <= roi.x + roi.width )
+            {
+                auto temp = x.at< short >( i, j );
+                if ( ! ans.contains( temp ) )
+                    ans.insert( { temp, 0 } );
+                ans [ temp ] += 1;
+            }
         }
     }
     int maxAns = -16;
@@ -164,7 +169,11 @@ void calculateDistance( vector< Mat > vec )
     cv::imshow( "origin", vec [ 0 ] );
     cv::imshow( "origin2", vec [ 1 ] );
     cv::Mat disparityMap;
-
+    Rect    roi = Rect( 0, 0, 640, 480 );
+    // static Rect    roi     = Rect( 0, 0, 10, 10 );
+    // auto    tempppp = cv::selectROI( vec [ 0 ] );
+    // if ( tempppp.area( ) > 10 )
+    //     roi = tempppp;
     // int                       numberOfDisparities = ( ( vec [ 0 ].cols / 8 ) + 15 ) & -16;
     cv::Ptr< cv::StereoSGBM > sgbm = cv::StereoSGBM::create( 0, 16 * setNumDisparities );
     sgbm->setPreFilterCap( setPreFilterCap );
@@ -186,11 +195,39 @@ void calculateDistance( vector< Mat > vec )
 
     sgbm->compute( vec [ 0 ], vec [ 1 ], disparityMap );
 
+
+    cv::Ptr< cv::StereoSGBM > sgbmR = cv::StereoSGBM::create( -16 * setNumDisparities, 16 * setNumDisparities );
+    sgbmR->setPreFilterCap( setPreFilterCap );
+    // int SADWindowSize = 9;
+    // int sgbmWinSize   = SADWindowSize > 0 ? SADWindowSize : 3;
+    sgbmR->setBlockSize( setsgbmWinSize );
+    // int cn =3;
+    sgbmR->setP1( setsgbmWinSize * 8 );
+    sgbmR->setP2( setsgbmWinSize * 32 );
+    sgbmR->setUniquenessRatio( setUniquenessRatio );
+    sgbmR->setSpeckleWindowSize( setSpeckleWindowSize );
+    sgbmR->setSpeckleRange( setSpeckleRange );
+    sgbmR->setDisp12MaxDiff( setDisp12MaxDiff );
+    sgbmR->setMode( cv::StereoSGBM::MODE_SGBM_3WAY );
+    // cout << vec [ 0 ].type()<<endl;
+    // vec [ 0 ].convertTo( vec [ 0 ], CV_8UC1 );
+
+    // vec [ 1 ].convertTo( vec [ 1 ], CV_8UC1 );
+
+    sgbmR->compute( vec [ 1 ], vec [ 0 ], disparityMapR );
+
+
+    auto wls_filter = cv::ximgproc::createDisparityWLSFilter( sgbm );
+    cv::Mat                   disparityMapnew;
+    // cv::Ptr< cv::StereoSGBM > right_matcher = cv::ximgproc::createRightMatcher( sgbm );
+    // right_matcher->compute( vec [ 0 ], vec [ 1 ], disparityMapRight );
     // cout << disparityMap.type()<<endl;
+    wls_filter->filter( disparityMap, vec [ 0 ], disparityMapnew );
+    disparityMap = disparityMapnew;
     Mat ans = disparityMap.clone( );
     // cout << disparityMap << endl;
 
-    auto temppp = countData1( ans );
+    auto temppp = countData1( ans, roi );
 
     disparityMap.convertTo( disparityMap, CV_8UC1, ( float ) 254 / ( float ) temppp );
     //  cout<<disparityMap<<endl;
@@ -198,7 +235,7 @@ void calculateDistance( vector< Mat > vec )
 
     applyColorMap( disparityMap, ans, COLORMAP_RAINBOW );
 
-    cv::imshow( "temp", disparityMap );
+    cv::imshow( "temp", ans );
 
     // resize( ans, tempp, Size( 480, 480 ) );
     // cv::imshow( "temp", ans );
@@ -271,8 +308,8 @@ int main( )
 
     left_setting.release( );
     right_setting.release( );
-    video
-        = VideoCapture( "/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/VE473_project/distancesrc/all_code/good_videos/hit_car_left.mp4" );
+    video = VideoCapture(
+        "/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/VE473_project/distancesrc/all_code/good_videos/passing_diff_cars.mp4" );
     init( );
     while ( true )
     {
@@ -280,7 +317,7 @@ int main( )
         // video >> image;
         // imageleft = imread( "/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/20231120-165813.jpg" );
         // cv::Mat imageright;
-        // video >> image;
+        video >> image;
         // imageright = imread( "/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/20231120-205433.jpg" );
 
         video >> image;
@@ -290,7 +327,7 @@ int main( )
         if ( image.empty( ) )
         {
             video = VideoCapture(
-                "/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/VE473_project/distancesrc/all_code/good_videos/hit_car_left.mp4" );
+                "/home/wznmickey/SJTU/SJTU/JI/VE473-2023/project/distance/VE473_project/distancesrc/all_code/good_videos/passing_diff_cars.mp4" );
         }
         // vector< Mat > x;
         // x.push_back( imageleft );
