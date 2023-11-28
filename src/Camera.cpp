@@ -6,7 +6,7 @@ Camera::Camera(int camid)
     this->camid = (int)camid;
     cap = new cv::VideoCapture(camid);
     if (!cap->isOpened()) {
-        std::cerr << "Cannot open camera";
+        std::cerr << "Cannot open camera " << camid << std::endl;
         exit(-1);
     }
     cam_init();
@@ -17,7 +17,7 @@ Camera::Camera(std::string filename)
     this->filename = filename;
     cap = new cv::VideoCapture(filename);
     if (!cap->isOpened()) {
-        std::cerr << "Cannot open video: "<<filename<<std::endl;
+        std::cerr << "Cannot open video: "<< filename << std::endl;
         exit(-1);
     }
 }

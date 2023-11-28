@@ -21,7 +21,7 @@ class Buzzer
     private:
         int buzzer_pin;
         bool isrunning = true;
-        unsigned long int buzztimems;
+        unsigned long int buzztimems = 0;
         std::thread buzzthread;
         std::mutex mtx;
         

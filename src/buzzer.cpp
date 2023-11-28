@@ -1,7 +1,7 @@
 #include "buzzer.h"
 
 const static int HERZ = 1000;
-
+const static int ATOMIC_TIME = 100; //milisecond
 
 Buzzer::Buzzer()
 {
@@ -31,10 +31,10 @@ void Buzzer::work()
         {
             unsigned long int milisecond = 0;
             this->mtx.lock();
-            if (this->buzztimems >= 100)
+            if (this->buzztimems >= ATOMIC_TIME)
             {
-                milisecond = 100;
-                this->buzztimems -= 100;
+                milisecond = ATOMIC_TIME;
+                this->buzztimems -= ATOMIC_TIME;
             }
             else{
                 milisecond = this->buzztimems;
@@ -55,7 +55,7 @@ void Buzzer::work()
         }
         else
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(std::chrono::milliseconds(ATOMIC_TIME));
         }
     }
 }

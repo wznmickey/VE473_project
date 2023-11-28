@@ -28,34 +28,33 @@ cfg::Config config;
 int main()
 {
     signal(SIGINT, signal_callback_handler);
-    Camera camera("/home/pi/videos/good_videos/hit_car_right.mp4");
-    //Camera camera(0);
-    //Car_Detection detect;
+    //Camera camera("/home/pi/videos/good_videos/hit_car_left.mp4");
+    Camera camera0(0);
+    Camera camera2(2);
+    // Camera camera(0);
     //Init distcalc
-    Detection detection;
     Gyro gyro;
     Buzzer buzzer;
-
     DistanceCalc distances;
-	while (flag) {
-        // buzzer(1000);
+    Detection detection;
+    int frameCount = 0;
+
+	while (flag && frameCount <= 500) {
         // gyro.GyroTurn();
-        // sleep(1);
-        // continue;
         struct timeval startTime;
         gettimeofday(&startTime, NULL);
         cv::Mat frame;
-        for (int i = 0; i < 5 ; i++)
+        for (int i = 0; i < 1 ; i++)
         {
-            frame = camera.take_pic();
+            frame = camera0.take_pic();
         }
         if (frame.empty()) break;
-        cv::Mat frameL = camera.get_pic(LEFT);
+        cv::Mat frameL = camera0.get_pic(LEFT);
         //vector<cv::Rect2d> roi_vec = detect.callNetworks(frameL);
         detection.detect( frameL );
         std::vector<cv::Mat> separated_photo;
-        separated_photo.emplace_back(camera.get_pic(LEFT));
-        separated_photo.emplace_back(camera.get_pic(RIGHT));
+        separated_photo.emplace_back(camera0.get_pic(LEFT));
+        separated_photo.emplace_back(camera0.get_pic(RIGHT));
         distances.calculateMap(separated_photo);
         vector<cv::Rect2i> roi_vec = detection.get( );
         struct timeval endTime;
@@ -70,19 +69,21 @@ int main()
                 gettimeofday(&start1, NULL);
                 double dist = distances.calculateDistance(separated_photo, roi);
                 std::cout << "Distance: " << dist << std::endl;
-                if (dist < 30) buzzer.buzz(500);
+                if (dist < 1.0) buzzer.buzz(500);
 
                 detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
                 struct timeval end1;
                 gettimeofday(&end1, NULL);
                 // std::cout << "Time for processing a car: " << timeDiff(start1, end1) << std::endl;
             }
-            detection.ImgSave("result.png");
+            frameCount += 1;
+            string filename = "../img/result" + std::to_string(frameCount) + ".jpg";
+            detection.ImgSave(filename);
             // char q;
             // std::cin.get(q);
             // if (q == 'a') return 0;
         }
-        sleep(2);
+        usleep(500000);
         //camera.save_pic(LEFT, "imageL.jpg");
         //camera.save_pic(RIGHT, "imageR.jpg");
 	}

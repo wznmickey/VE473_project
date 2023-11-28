@@ -126,8 +126,8 @@ double DistanceCalc::calculateDistance(vector<Mat> vec,cv::Rect2d roi)
     // cv::imwrite("./tmp.jpg", temp);
 
     double prop = getBlockPropotion(roi);
-    if (prop >= 0.75) return (10 / prop);
-    if (prop < 0.05) return 100;
+    if (prop >= 0.7) return (10 / prop);
+    if (prop < 0.01) return 100;
 
     float fx = 21;
     float baseline = 60; // distance between 2 cam: 60 mm
@@ -147,7 +147,7 @@ double DistanceCalc::calculateDistance(vector<Mat> vec,cv::Rect2d roi)
             int id = i*width + j;
             // cout<< i<<" " <<j<<" " <<height <<" " <<width<<endl;
             // if (!dispData[id])  continue;  //防止0除
-            if (dispData[id]==0) continue;
+            if (dispData[id]<=0) continue;
             depthData[id] = ushort( (float)fx * (float) baseline / ((float) dispData[id]) );
             
             finalDistance+=depthData[id];

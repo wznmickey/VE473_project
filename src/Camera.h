@@ -26,7 +26,8 @@ enum WhichCam
 class Camera
 {
     public:
-        Camera(int camid = 0);
+        Camera(){};
+        Camera(int camid);
         Camera(std::string filename);
         ~Camera();
 
