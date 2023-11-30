@@ -1,0 +1,22 @@
+<!DOCTYPE HTML>
+<html>
+
+<body>
+    <img id="camera" src="show.jpg" align="middle">
+</body>
+<script>
+    var newImage = new Image();
+    newImage.src = "show.jpg";
+    function updateImage() {
+        if (newImage.complete) {
+            document.getElementById("camera").src = newImage.src;
+            newImage = new Image();
+            newImage.src = "show.jpg?t=" + new Date().getTime();
+        }
+
+        setTimeout(updateImage, 1000);
+    }
+    updateImage();
+</script>
+
+</html>
