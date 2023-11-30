@@ -15,15 +15,16 @@ void Detection::imageConvert( cv::Mat &input )
     cv::Mat blob_image;
     cv::resize( input, blob_image, cv::Size( width, height ) );
     float *image_data = input_tensor.data< float >( );
-    for ( size_t c = 0; c < channel; c++ )
+    for ( size_t h = 0; h < height; h++ )
     {
-        for ( size_t h = 0; h < height; h++ )
+        for ( size_t w = 0; w < width; w++ )
         {
-            for ( size_t w = 0; w < width; w++ )
-            {
-                size_t index         = c * width * height + h * width + w;
-                image_data [ index ] = blob_image.at< cv::Vec3b >( h, w ) [ c ];
-            }
+            size_t index         = h * width + w;
+            image_data [ index ] = blob_image.at< cv::Vec3b >( h, w ) [ 0 ];
+            index += width * height;
+            image_data [ index ] = blob_image.at< cv::Vec3b >( h, w ) [ 1 ];
+            index += width * height;
+            image_data [ index ] = blob_image.at< cv::Vec3b >( h, w ) [ 2 ];
         }
     }
 }

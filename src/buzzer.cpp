@@ -5,6 +5,7 @@ const static int ATOMIC_TIME = 100; //milisecond
 
 Buzzer::Buzzer()
 {
+    this->mtxwork.lock();
     // Set up wiringPi
     wiringPiSetupGpio();
 
@@ -20,6 +21,8 @@ Buzzer::Buzzer()
 Buzzer::~Buzzer()
 {
     this->isrunning = false;
+    this->buzztimems = 0;
+    this->mtxwork.unlock();
     this->buzzthread.join();
 }
 
@@ -27,10 +30,11 @@ void Buzzer::work()
 {
     while(this->isrunning)
     {
-        if (this->buzztimems > 0)
+        this->mtxwork.lock();
+        while (this->buzztimems > 0)
         {
             unsigned long int milisecond = 0;
-            this->mtx.lock();
+            this->mtxtime.lock();
             if (this->buzztimems >= ATOMIC_TIME)
             {
                 milisecond = ATOMIC_TIME;
@@ -40,7 +44,7 @@ void Buzzer::work()
                 milisecond = this->buzztimems;
                 this->buzztimems = 0;
             }
-            this->mtx.unlock();
+            this->mtxtime.unlock();
             for(unsigned long int i = 0; i < milisecond*HERZ/1000; i++) {
                 // Turn on the buzzer
                 digitalWrite(buzzer_pin, HIGH);
@@ -53,18 +57,23 @@ void Buzzer::work()
                 usleep(1000000/HERZ/2);
             }
         }
-        else
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(ATOMIC_TIME));
-        }
+        this->buzztimems = 0;
+        this->mtxwork.try_lock();
+        // else
+        // {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(ATOMIC_TIME));
+        // }
     }
+    this->mtxwork.unlock();
 }
 
 void Buzzer::buzz(unsigned long int milisecond)
 {
-    this->mtx.lock();
+    this->mtxtime.lock();
     this->buzztimems = std::max(this->buzztimems,milisecond);
-    this->mtx.unlock();
+    this->mtxtime.unlock();
+
+    this->mtxwork.unlock();
     // // Set up wiringPi
     // wiringPiSetupGpio();
 

@@ -32,6 +32,29 @@ DistanceCalc::DistanceCalc() {
     this->stereo->setPreFilterCap(31);     // 设置预处理滤波器的最大灰度差值，默认为31
     this->stereo->setTextureThreshold(10); // 设置纹理阈值，默认为10，用于筛选边缘区域
     this->stereo->setUniquenessRatio(15);  // 设置唯一性比率，默认为15，用于筛选匹配的唯一性
+
+    int              setNumDisparities    = 3;
+    int              setPreFilterCap      = 4;
+    int              setUniquenessRatio   = 15;
+    int              setsgbmWinSize       = 10;
+    // int              setP1                = 10;
+    // int              setP2                = 50;
+    int              setSpeckleWindowSize = 85;
+    int              setSpeckleRange      = 88;
+    int              setDisp12MaxDiff     = -1;
+    this->sgbm = cv::StereoSGBM::create( 0, setNumDisparities );
+    sgbm->setPreFilterCap( setPreFilterCap );
+    // int SADWindowSize = 9;
+    // int sgbmWinSize   = SADWindowSize > 0 ? SADWindowSize : 3;
+    sgbm->setBlockSize( setsgbmWinSize );
+    // int cn =3;
+    sgbm->setP1( setsgbmWinSize * 8 );
+    sgbm->setP2( setsgbmWinSize * 32 );
+    sgbm->setUniquenessRatio( setUniquenessRatio );
+    sgbm->setSpeckleWindowSize( setSpeckleWindowSize );
+    sgbm->setSpeckleRange( setSpeckleRange );
+    sgbm->setDisp12MaxDiff( setDisp12MaxDiff );
+
     this->distcalcinit();
 }
 
@@ -62,28 +85,6 @@ vector<Mat> DistanceCalc::seperatePhoto(cv::Mat image)
 
 
 void DistanceCalc::calculateMap(vector<Mat> vec) {
-    int              setNumDisparities    = 3;
-    int              setPreFilterCap      = 4;
-    int              setUniquenessRatio   = 15;
-    int              setsgbmWinSize       = 10;
-    // int              setP1                = 10;
-    // int              setP2                = 50;
-    int              setSpeckleWindowSize = 85;
-    int              setSpeckleRange      = 88;
-    int              setDisp12MaxDiff     = -1;
-
-    cv::Ptr< cv::StereoSGBM > sgbm = cv::StereoSGBM::create( 0, setNumDisparities );
-    sgbm->setPreFilterCap( setPreFilterCap );
-    // int SADWindowSize = 9;
-    // int sgbmWinSize   = SADWindowSize > 0 ? SADWindowSize : 3;
-    sgbm->setBlockSize( setsgbmWinSize );
-    // int cn =3;
-    sgbm->setP1( setsgbmWinSize * 8 );
-    sgbm->setP2( setsgbmWinSize * 32 );
-    sgbm->setUniquenessRatio( setUniquenessRatio );
-    sgbm->setSpeckleWindowSize( setSpeckleWindowSize );
-    sgbm->setSpeckleRange( setSpeckleRange );
-    sgbm->setDisp12MaxDiff( setDisp12MaxDiff );
     sgbm->setMode( cv::StereoSGBM::MODE_SGBM_3WAY );
     // cout << vec [ 0 ].type()<<endl;
     // vec [ 0 ].convertTo( vec [ 0 ], CV_8UC1 );
@@ -114,8 +115,8 @@ double DistanceCalc::getBlockPropotion(cv::Rect2d roi) {
     int height = conf.height;
 
     // calculate the block size
-    double area = roi.area();
-    double propotion = area / float(width * height);
+    double area = roi.height;
+    double propotion = area / float(height);
     return propotion;
 }
 
@@ -126,8 +127,8 @@ double DistanceCalc::calculateDistance(vector<Mat> vec,cv::Rect2d roi)
     // cv::imwrite("./tmp.jpg", temp);
 
     double prop = getBlockPropotion(roi);
-    if (prop >= 0.7) return (10 / prop);
-    if (prop < 0.01) return 100;
+    if (prop >= 0.8) return (1 / prop);
+    if (prop < 0.1) return 100;
 
     float fx = 21;
     float baseline = 60; // distance between 2 cam: 60 mm

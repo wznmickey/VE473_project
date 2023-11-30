@@ -9,7 +9,9 @@ Camera::Camera(int camid)
         std::cerr << "Cannot open camera " << camid << std::endl;
         exit(-1);
     }
+    std::cout << "Camera " << camid << " init succeed" << std::endl;
     cam_init();
+    //this->take_pic();
 }
 
 Camera::Camera(std::string filename)
@@ -30,6 +32,7 @@ void Camera::cam_init(void)
 {
     cap->set(3, config.width);
     cap->set(4, config.height);
+    cap->set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M','J','P','G'));
     //cap.set(5, config.fps);
 }
 
@@ -60,7 +63,13 @@ cv::Mat Camera::take_pic(bool split)
  */
 void Camera::split_pic(void)
 {
-    if(frame.empty()) std::cerr << "Frame is empty! Can not split.\n";
+    if(frame.empty())
+    {
+        std::cerr << "Frame is empty! Can not split.\n";
+        if(this->isCam()) std::cerr << "Error in " << this->camid << std::endl;
+        else std::cerr << "Error in " << this->filename << std::endl;
+        return;
+    } 
     cv::Rect left_roi(0, 0, config.width/2, config.height);
     frameLeft = frame(left_roi);
     cv::Rect right_roi(config.width/2, 0, config.width/2, config.height);

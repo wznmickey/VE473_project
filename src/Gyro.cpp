@@ -46,3 +46,36 @@ bool Gyro::GyroTurn(void)
     */
 	return false;
 }
+
+void Gyro::setAlertThreshold(int th) {
+	if (th >= 2) this->alertThreshold = th;
+	else this->alertThreshold = 1;
+}
+
+/**
+ * @brief return alert flag, if true then clean the flag
+ * @return bool
+*/
+bool Gyro::getAlertFlag(void) {
+	if (alertFlag) {
+		alertFlag = false;
+		return true;
+	}
+	return false;
+};
+
+bool Gyro::readGyro(void) {
+	float accx, accy, accz;
+	this->gyroscope.getAccel(&accx, &accy, &accz);
+	float accelerationMagnitude = sqrt(accx * accx + accy * accy + accz * accz);
+	if (accelerationMagnitude >= joggleTolerance) {
+		this->alertCount += 1;
+		if (alertCount >= alertThreshold) {
+			alertFlag = true;
+			alertCount = 0;
+		}
+	} else {
+		alertCount = 0;
+	}
+	return true;
+}

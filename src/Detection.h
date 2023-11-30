@@ -28,7 +28,6 @@ private:
     size_t            rows;
     cv::Mat           img;
     std::vector< cv::Rect2i > ret;
-    void              imageConvert( cv::Mat &input );
 
 public:
     Detection( );
@@ -36,6 +35,7 @@ public:
     void detect( cv::Mat &img );
     void              drawRectText( cv::Rect2i roi, std::string text);
     void              ImgSave(std::string savepath);
+    void              imageConvert( cv::Mat &input );
 };
 
 #endif

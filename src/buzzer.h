@@ -23,8 +23,8 @@ class Buzzer
         bool isrunning = true;
         unsigned long int buzztimems = 0;
         std::thread buzzthread;
-        std::mutex mtx;
-        
+        std::mutex mtxtime;
+        std::mutex mtxwork;
 };
 
 #endif

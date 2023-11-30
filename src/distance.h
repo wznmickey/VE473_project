@@ -26,6 +26,7 @@ private:
     Mat right_camera_matrix;
     Mat right_dist_coeffs;
     cv::Ptr<cv::StereoBM> stereo;
+    cv::Ptr< cv::StereoSGBM > sgbm;
     cv::Mat disparityMap;
     ushort* depthData;
     short int* dispData;
