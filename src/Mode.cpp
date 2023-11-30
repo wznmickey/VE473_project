@@ -15,7 +15,8 @@ bool EfficiencyMode(
         static float EfficiencyTime = -1;
         if (EfficiencyTime < 0) gettimeofday(&startTime, NULL);
 
-        static unsigned short whichcam = 0;
+        static short whichcam = -1;
+        whichcam = (whichcam+1)%4;
         Camera * camera;
         switch (whichcam)
         {
@@ -34,7 +35,6 @@ bool EfficiencyMode(
             return false;
             break;
         }
-        whichcam = (whichcam+1)%4;
         
         static cv::Mat frame;
         frame = camera->take_pic();
