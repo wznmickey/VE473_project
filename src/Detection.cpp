@@ -27,6 +27,8 @@ void Detection::imageConvert( cv::Mat &input )
             image_data [ index ] = blob_image.at< cv::Vec3b >( h, w ) [ 2 ];
         }
     }
+    gettimeofday(&endTime, NULL);
+    std::cout << "Image Convert time: " << timeDiff(startTime, endTime) << "\n";
 }
 
 void Detection::drawRectText( cv::Rect2i roi, std::string text)
@@ -96,8 +98,8 @@ std::vector< cv::Rect2i >& Detection::get( )
     }
     // ImgSave("/home/pi/VE473_project/img/result.png");
     gettimeofday(&endTime, NULL);
-    std::cout << "Get inference output: " << timeDiff(startTime, endTime) << ", with " << i <<
-        " numbers of outputs.\n";
+    //std::cout << "Get inference output: " << timeDiff(startTime, endTime) << ", with " << i <<
+    //    " numbers of outputs.\n";
     return ret;
 }
 
@@ -109,7 +111,7 @@ void Detection::detect( cv::Mat &img )
     rows = img.rows;
     gettimeofday(&startTime, NULL);
     imageConvert( img );
-
+    gettimeofday(&startTime, NULL);
     infer_request.start_async( );
 }
 

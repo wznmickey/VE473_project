@@ -29,9 +29,10 @@ cfg::Config config;
 int main()
 {
     signal(SIGINT, signal_callback_handler);
-    //Camera camera("/home/pi/videos/good_videos/hit_car_left.mp4");
-    Camera camera0(0);
-    Camera camera1(2);
+    Camera camera0("/home/pi/videos/good_videos/hit_car_left.mp4");
+    Camera camera1("/home/pi/videos/good_videos/hit_car_right.mp4");
+    //Camera camera0(0);
+    //Camera camera1(2);
     //Init distcalc
     Gyro gyro;
     Buzzer buzzer;
@@ -42,6 +43,12 @@ int main()
 
     while(flag)
     {
+        #ifdef PERF_DEBUG
+            mode = PERFORMANCE;
+        #endif
+        #ifdef EFF_DEBUG
+            mode = EFFICIENCY;
+        #endif
         if(mode == PERFORMANCE)
         {
             if(!PerformanceMode(&camera0, &camera1, &gyro, &buzzer, &distances, &detection, &mode)) break;

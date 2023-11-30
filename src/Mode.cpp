@@ -37,9 +37,6 @@ bool EfficiencyMode(
         whichcam = (whichcam+1)%4;
         
         static cv::Mat frame;
-        Camera * camera = whichcam? camera0 : camera1;
-        whichcam = !whichcam;
-
         frame = camera->take_pic();
         if (frame.empty()) return false;
 
@@ -127,10 +124,10 @@ bool PerformanceMode(
                 dist = distances->calculateDistance(separated_photo, roi);
                 std::cout << "Distance of cam0: " << dist << std::endl;
                 minDist = min(dist,minDist);
-                //detection->drawRectText(roi,std::to_string(dist).substr(0, 4));
+                detection->drawRectText(roi,std::to_string(dist).substr(0, 4));
             }
-            // string filename = "../img/result" + std::to_string(frameCount) + ".jpg";
-            // detection->ImgSave(filename);
+            string filename = "/home/pi/www/show.jpg";
+            detection->ImgSave(filename);
         }
         else Cam0NoRoi = true;
 
@@ -152,10 +149,10 @@ bool PerformanceMode(
                 dist = distances->calculateDistance(separated_photo, roi);
                 std::cout << "Distance of cam1: " << dist << std::endl;
                 minDist = min(dist,minDist);
-                //detection->drawRectText(roi,std::to_string(dist).substr(0, 4));
+                detection->drawRectText(roi,std::to_string(dist).substr(0, 4));
             }
-            // string filename = "../img/result" + std::to_string(frameCount) + ".jpg";
-            // detection->ImgSave(filename);
+            string filename = "/home/pi/www/show.jpg";
+            detection->ImgSave(filename);
         }
         else if(Cam0NoRoi)
         {

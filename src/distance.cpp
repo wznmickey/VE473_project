@@ -93,17 +93,17 @@ void DistanceCalc::calculateMap(vector<Mat> vec) {
 
     sgbm->compute( vec [ 0 ], vec [ 1 ], disparityMap );
 
-    ans = disparityMap.clone();
-    Mat show = ans.clone();
-    cv::normalize(show, show,0,255,NORM_MINMAX,CV_8U);
-    cv::imwrite("show.jpg",show);    
+    //ans = disparityMap.clone();
+    // Mat show = ans.clone();
+    // cv::normalize(show, show,0,255,NORM_MINMAX,CV_8U);
+    // cv::imwrite("show.jpg",show);    
 
     int type = disparityMap.type();
     // std::cout << "type = " << type << ", CV_8U = " << CV_8U << std::endl;
-    ans.convertTo(ans, CV_16UC1);
+    // ans.convertTo(ans, CV_16UC1);
     // cout<<disparityMap<<endl;
     this->dispData = (short int*)disparityMap.data;
-    this->depthData = (ushort*)ans.data;
+    // this->depthData = (ushort*)ans.data;
 }
 
 double DistanceCalc::getBlockPropotion(cv::Rect2d roi) {
@@ -149,9 +149,9 @@ double DistanceCalc::calculateDistance(vector<Mat> vec,cv::Rect2d roi)
             // cout<< i<<" " <<j<<" " <<height <<" " <<width<<endl;
             // if (!dispData[id])  continue;  //防止0除
             if (dispData[id]<=0) continue;
-            depthData[id] = ushort( (float)fx * (float) baseline / ((float) dispData[id]) );
+            // depthData[id] = ushort( (float)fx * (float) baseline / ((float) dispData[id]) );
             
-            finalDistance+=depthData[id];
+            finalDistance+=ushort( (float)fx * (float) baseline / ((float) dispData[id]) );
             countedPoint++;
             
             // cout<<depthData[id]<<endl;
