@@ -141,8 +141,8 @@ Mat disp, disp8;
 // Mat xyz;  
     disp8 = Mat(disparityMap.rows, disparityMap.cols, CV_8UC1);
 	normalize(disparityMap, disp8, 0, 255, NORM_MINMAX, CV_8UC1);
-	// reprojectImageTo3D(disp, xyz, Q, true); 
-	// xyz = xyz * 16;
+	reprojectImageTo3D(disparityMap, xyz, Q, true); 
+	xyz = xyz * 16;
 	imwrite("disparity.jpg", disp8);
 
     // ans = disparityMap.clone();
@@ -197,19 +197,22 @@ double DistanceCalc::calculateDistance(vector<Mat> vec,cv::Rect2d roi)
     {
         for (int j = max2(0,roi.x); j < range_w; j++)
         {
-            int id = i*width + j;
+            // int id = i*width + j;
             // cout<< i<<" " <<j<<" " <<height <<" " <<width<<endl;
             // if (!dispData[id])  continue;  //防止0除
-            if (dispData[id]<=0) continue;
+            // if (dispData[id]<=0) continue;
             // depthData[id] = ushort( (float)fx * (float) baseline / ((float) dispData[id]) );
-            
-            finalDistance+=ushort( (float)fx * (float) baseline / ((float) dispData[id]) );
+            auto point3 = xyz.at<Vec3f>(Point(j,i))[2];
+            if (point3>100000) continue;
+            if (point3<=10) continue;
+            finalDistance+=point3;
             countedPoint++;
-            
+            cout<<point3<<endl;
             // cout<<depthData[id]<<endl;
         }
     }
     // }
+    if (countedPoint ==0) return 100000;
     cout<<"Point coundted in the rectangle: " <<countedPoint<<endl;
     return finalDistance/countedPoint; //
 }
