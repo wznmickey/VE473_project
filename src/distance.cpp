@@ -11,6 +11,7 @@ static int max2(int a, int b) {
 
 static int rectify(int left, int right) {
     int diff = right - left;
+    if (diff >= 400) return (diff / 7)*3;
     if (diff >= 300) return (diff / 5)<<1;
     if (diff >= 100) return (diff / 3);
     return 0;
@@ -63,14 +64,14 @@ static int rectify(int left, int right) {
 // }
 
 DistanceCalc::DistanceCalc() {
-    int              setNumDisparities    = 16;
+    int              setNumDisparities    = 3;
     int              setPreFilterCap      = 1;
     int              setUniquenessRatio   = 5;
-    int              setsgbmWinSize       = 8;
+    int              setsgbmWinSize       = 5;
     // int              setP1                = 10;
     // int              setP2                = 50;
-    int              setSpeckleWindowSize = 100;
-    int              setSpeckleRange      = 100;
+    int              setSpeckleWindowSize = 3;
+    int              setSpeckleRange      = 3;
     int              setDisp12MaxDiff     = -1;
     this->sgbm = cv::StereoSGBM::create( 1, setNumDisparities );
     sgbm->setPreFilterCap( setPreFilterCap );
@@ -123,7 +124,7 @@ DistanceCalc::DistanceCalc() {
 
 void DistanceCalc::calculateMap(vector<Mat> & vec, cv::Mat & Q) {
          
-    sgbm->setMode( cv::StereoSGBM::MODE_HH );
+    sgbm->setMode( cv::StereoSGBM::MODE_HH4 );
     // sgbm->setMode( cv::StereoSGBM::MODE_SGBM_3WAY );
     // cout << vec [ 0 ].type()<<endl;
     // vec [ 0 ].convertTo( vec [ 0 ], CV_8UC1 );
@@ -134,9 +135,9 @@ void DistanceCalc::calculateMap(vector<Mat> & vec, cv::Mat & Q) {
     struct timeval startTime;
     gettimeofday(&startTime,NULL);
     sgbm->compute( vec [0], vec [1], disparityMap );
-    Mat disp, disp8;  
-    disp = disparityMap.clone();
-    disp.convertTo( disp, CV_8UC1,0.25);
+    // Mat disp, disp8;  
+    // disp = disparityMap.clone();
+    // disp.convertTo( disp, CV_8UC1,0.25);
     // disp8 = Mat(disparityMap.rows, disparityMap.cols, CV_8UC1);
     
     // applyColorMap( disp, disp, COLORMAP_RAINBOW );
@@ -145,7 +146,7 @@ void DistanceCalc::calculateMap(vector<Mat> & vec, cv::Mat & Q) {
 	// normalize(disparityMap, disp8, 0, 255, NORM_MINMAX, CV_8UC1);
 	reprojectImageTo3D(disparityMap, xyz, Q, true); 
 	xyz = xyz * 16;
-	imwrite("disparity.jpg", disp);
+	// imwrite("disparity.jpg", disp);
 
     // ans = disparityMap.clone();
     // Mat show = ans.clone();
@@ -180,8 +181,6 @@ double DistanceCalc::getBlockPropotion(cv::Rect2d & roi) {
 
 double DistanceCalc::calculateDistance(vector<Mat> & vec,cv::Rect2i & roi)
 {
-    struct timeval startTime;
-    gettimeofday(&startTime,NULL);
 
     // auto temp = vec[0].clone();
     // cv::rectangle(temp, roi, cv::Scalar(0.2), 5);
@@ -222,9 +221,6 @@ double DistanceCalc::calculateDistance(vector<Mat> & vec,cv::Rect2i & roi)
     if (countedPoint ==0) return 100000;
     cout<<"Point coundted in the rectangle: " << countedPoint <<endl;
 
-    struct timeval endTime;
-    gettimeofday(&endTime,NULL);
-    cout << "Distance calc time: "<<timeDiff(startTime,endTime)<<endl;
 
     return finalDistance/countedPoint/(double)2000; //
 }

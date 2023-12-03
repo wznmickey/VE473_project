@@ -34,6 +34,8 @@ void Detection::drawRectText( cv::Rect2i & roi, std::string text)
 {
     cv::rectangle(this->img, roi, cv::Scalar(0, 0, 255), 2);
     cv::Point position(roi.x+10,roi.y+roi.height+20);
+    if (position.y > 480) position.y = 400;
+    if (position.x < 0 ) position.x = 60;
     int fontFace = cv::FONT_HERSHEY_SIMPLEX;
     double fontScale = 0.8;
     cv::Scalar fontColor(0, 255, 0);
@@ -48,11 +50,10 @@ void Detection::ImgSave(std::string savepath)
     static struct timeval thissavetime;
     gettimeofday(&thissavetime, NULL);
     std::ofstream fout;
-    fout.open("/home/pi/www/data.txt");
+    fout.open("/home/pi/www/time.txt");
     fout << std::setprecision(4);
     float temp = timeDiff(lastsavetime, thissavetime);
     fout << temp << std::endl;
-    fout << (1000.0)/temp << std::endl;
     cv::imwrite(savepath,this->img);
     gettimeofday(&lastsavetime, NULL);
     return;
@@ -60,7 +61,7 @@ void Detection::ImgSave(std::string savepath)
 
 Detection::Detection( )
 {
-    std::cout << "Attempting to load model..." << timeDiff( startTime, endTime ) << std::endl;
+    std::cout << "Attempting to load model..." << std::endl;
     gettimeofday( &startTime, nullptr );
     std::string modelPath = "/home/pi/intel/vehicle-detection-0200/FP16/vehicle-detection-0200.xml";
     core;

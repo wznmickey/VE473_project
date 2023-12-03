@@ -71,7 +71,7 @@ bool EfficiencyMode(
         }
         // TODO: Add switch to performance according to the gyro sensor
         // Distance is too small
-        if(minDist < 1.0) 
+        if(minDist < 1.5) 
         {
             buzzer.buzz(500);
             mode = PERFORMANCE;
@@ -194,6 +194,6 @@ bool PerformanceMode(
         
         if(mode  == EFFICIENCY) printf(GREEN "Switch to Efficiency mode\n" NONE);
 
-        if(minDist < 1.0) buzzer.buzz(500);
+        if(minDist < 1.5) buzzer.buzz(500);
         return true;
     }
