@@ -11,7 +11,7 @@ bool EfficiencyMode(
     Mode& mode)
     {
         if (gyro.getAlertFlag()) mode = PERFORMANCE;
-
+        gyro.readGyro();
         static struct timeval startTime;
         static struct timeval endTime;
         static float EfficiencyTime = -1;
@@ -45,15 +45,18 @@ bool EfficiencyMode(
         double dist = 0;
 
         frameL = camera->get_pic(LEFT);
-        frameR = camera->get_pic(RIGHT);
         detection.detect(frameL);
+        gyro.readGyro();
 
+        camera->progress_photo();
+        frameL = camera->get_pic(LEFT);
+        frameR = camera->get_pic(RIGHT);
         separated_photo.emplace_back(frameL);
         separated_photo.emplace_back(frameR);
-        distances.calculateMap(separated_photo);
+        distances.calculateMap(separated_photo, camera->getQ());
 
         roi_vec = detection.get();
-        
+        gyro.readGyro();
         if(!roi_vec.empty())
         {
             for(cv::Rect2i roi: roi_vec)
@@ -63,7 +66,7 @@ bool EfficiencyMode(
                 minDist = min(dist,minDist);
                 detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
             }
-            string filename = "/home/pi/www/show.jpg";
+            string filename = "/home/pi/www/show" + std::to_string(whichcam) + ".jpg";
             detection.ImgSave(filename);
         }
         // TODO: Add switch to performance according to the gyro sensor
@@ -72,6 +75,7 @@ bool EfficiencyMode(
         {
             buzzer.buzz(500);
             mode = PERFORMANCE;
+            printf(RED "Switch to Performance mode\n" NONE);
         }
 
         if (EfficiencyTime < 0)
@@ -99,7 +103,7 @@ bool PerformanceMode(
         static bool Cam0NoRoi = false;
         static bool Cam1NoRoi = false;
 
-        // gyro->readGyro();
+        gyro.readGyro();
 
         std::vector<cv::Mat> separated_photo;
         vector<cv::Rect2i> roi_vec;
@@ -111,14 +115,18 @@ bool PerformanceMode(
             frame0 = camera0.take_pic();
             if(frame0.empty()) return false;
             frameL = camera0.get_pic(LEFT);
-            frameR = camera0.get_pic(RIGHT);
             detection.detect(frameL);
+            gyro.readGyro();
 
+            camera0.progress_photo();
+            frameL = camera0.get_pic(LEFT);
+            frameR = camera0.get_pic(RIGHT);
             separated_photo.emplace_back(frameL);
             separated_photo.emplace_back(frameR);
-            distances.calculateMap(separated_photo);
+            distances.calculateMap(separated_photo, camera0.getQ());
 
             roi_vec = detection.get();
+            gyro.readGyro();
             if(!roi_vec.empty())
             {
                 for(cv::Rect2i roi: roi_vec)
@@ -128,7 +136,7 @@ bool PerformanceMode(
                     minDist = min(dist,minDist);
                     detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
                 }
-                string filename = "/home/pi/www/show.jpg";
+                string filename = "/home/pi/www/show" + std::to_string(0) + ".jpg";
                 detection.ImgSave(filename);
             }
             else Cam0NoRoi = true;
@@ -147,17 +155,20 @@ bool PerformanceMode(
             if(frame1.empty()) return false;
 
             frameL = camera1.get_pic(LEFT);
-            frameR = camera1.get_pic(RIGHT);
-            // gyro->readGyro();
-            detection.detect(frameL);
 
+            detection.detect(frameL);
+            gyro.readGyro();
+
+            camera1.progress_photo();
+            frameL = camera1.get_pic(LEFT);
+            frameR = camera1.get_pic(RIGHT);
             separated_photo.clear();
             separated_photo.emplace_back(frameL);
             separated_photo.emplace_back(frameR);
-            distances.calculateMap(separated_photo);
+            distances.calculateMap(separated_photo, camera1.getQ());
 
             roi_vec = detection.get();
-
+            gyro.readGyro();
             if(!roi_vec.empty())
             {
                 for(cv::Rect2i roi: roi_vec)
@@ -167,7 +178,7 @@ bool PerformanceMode(
                     minDist = min(dist,minDist);
                     detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
                 }
-                string filename = "/home/pi/www/show.jpg";
+                string filename = "/home/pi/www/show" + std::to_string(1) + ".jpg";
                 detection.ImgSave(filename);
             }
             else Cam1NoRoi = true;
@@ -181,7 +192,7 @@ bool PerformanceMode(
             }
         }
         
-        if(mode  == EFFICIENCY) printf(RED "Switch to Efficiency mode\n" NONE);
+        if(mode  == EFFICIENCY) printf(GREEN "Switch to Efficiency mode\n" NONE);
 
         if(minDist < 1.0) buzzer.buzz(500);
         return true;

@@ -10,6 +10,7 @@ Camera::Camera(int deviceid, int camid)
     }
 
     this->deviceid = (int)deviceid;
+    this->camid = camid;
     cap = new cv::VideoCapture(deviceid);
     if (!cap->isOpened()) {
         std::cerr << "Cannot open camera " << deviceid << std::endl;
@@ -39,6 +40,67 @@ void Camera::cam_init(void)
     cap->set(4, config.height);
     cap->set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M','J','P','G'));
     //cap.set(5, config.fps);
+    using cv::Mat;
+    using cv::Mat_;
+    using cv::Rect;
+    using cv::Size;
+    Mat cameraMatrixL;
+    Mat distCoeffL;
+    Mat cameraMatrixR;
+    Mat distCoeffR;
+    Mat T;
+    Mat rec;
+    Mat R;
+    if(this->camid == 1)
+    {
+        cameraMatrixL = (Mat_<double>(3, 3) << 482.5015,0.1909,298.9531, 0, 483.5012,211.7897, 0, 0, 1.);
+        distCoeffL = (Mat_<double>(5, 1) << 0.1072,-0.1186,-0.0013,0.0027,0);
+        cameraMatrixR = (Mat_<double>(3, 3) << 481.6718,-0.0082,276.8195, 0, 482.3926,209.6866, 0, 0, 1);
+        distCoeffR = (Mat_<double>(5, 1) << 0.0984,-0.0805,0.00085982,0.0023, 0);
+        T = (Mat_<double>(3, 1) << -56.4343,-0.2152,-0.6567);//T平移向量
+        rec = (Mat_<double>(3, 3) << 1,0.00069102,0.00022640,-0.00069164,1,0.0027,-0.00022452,-0.0027,1);                //rec旋转向量，对应matlab om参数  我     
+    }
+    else if (this->camid == 2)
+    {
+        cameraMatrixL = (Mat_<double>(3, 3) << 487.2015, 0.3897,287.4948, 0, 488.1516, 260.5195, 0, 0, 1.);
+        distCoeffL = (Mat_<double>(5, 1) <<0.1165,-0.1455,-0.0011, 0.00073831 , 0);
+        cameraMatrixR = (Mat_<double>(3, 3) <<486.8839, 0.5513,305.1667, 0, 487.6473,263.9588, 0, 0, 1);
+        distCoeffR = (Mat_<double>(5, 1) << 0.1081,-0.1127, 0.00000013425 , 0.00097226 , 0);
+        T = (Mat_<double>(3, 1) << -58.9491,0.1002,-0.1457);//T平移向量
+        rec = (Mat_<double>(3, 3) << 1,0.0013,-0.0017,-0.0013,1,-0.0033,0.0017,0.0033,1);                //rec旋转向量，对应matlab om参数  我 
+    }
+    Rect validROIL;// After calibration, the figure need to be cut
+    Rect validROIR;
+    Size imageSize = Size(640, 480);
+    cv::Rodrigues(rec, R); //Rodrigues Transformation
+
+    Mat Rl, Rr, Pl, Pr;
+    cv::stereoRectify(cameraMatrixL, distCoeffL, cameraMatrixR, distCoeffR, imageSize, R, T, Rl, Rr, Pl, Pr, this->Q, cv::CALIB_ZERO_DISPARITY,
+                0, imageSize, &validROIL, &validROIR);
+                
+    cv::initUndistortRectifyMap(cameraMatrixL, distCoeffL, Rl, Pr, imageSize, CV_32FC1, this->mapLx, this->mapLy);
+    cv::initUndistortRectifyMap(cameraMatrixR, distCoeffR, Rr, Pr, imageSize, CV_32FC1, this->mapRx, this->mapRy);
+
+}
+
+void Camera::progress_photo(void)
+{
+    struct timeval startTime;
+    gettimeofday(&startTime,NULL);
+    
+    cv::Mat rectifyImageL, rectifyImageR;
+    cv::cvtColor(this->frameLeft, this->frameLeft, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(this->frameRight, this->frameRight, cv::COLOR_BGR2GRAY);
+    remap(this->frameLeft, rectifyImageL, this->mapLx, this->mapLy, cv::INTER_LINEAR);
+    remap(this->frameRight, rectifyImageR, this->mapRx, this->mapRy, cv::INTER_LINEAR);
+
+    this->frameLeft = rectifyImageL;
+    this->frameRight = rectifyImageR;
+
+    struct timeval endTime;
+    gettimeofday(&endTime,NULL);
+    std::cout << "Photo calibrate time: "<< timeDiff(startTime,endTime) << std::endl;
+
 }
 
 /**
@@ -58,7 +120,10 @@ cv::Mat Camera::take_pic(bool split)
             return frame; 
         }
     }
-    if(split) split_pic();
+    if(split)
+    {
+        split_pic();
+    } 
     return frame;
 }
 

@@ -1,4 +1,5 @@
 #include "Detection.h"
+#include <fstream>
 
 /**
  * @return float: time difference in ms
@@ -27,30 +28,39 @@ void Detection::imageConvert( cv::Mat &input )
             image_data [ index ] = blob_image.at< cv::Vec3b >( h, w ) [ 2 ];
         }
     }
-    gettimeofday(&endTime, NULL);
-    std::cout << "Image Convert time: " << timeDiff(startTime, endTime) << "\n";
 }
 
 void Detection::drawRectText( cv::Rect2i & roi, std::string text)
 {
-    cv::rectangle(this->img, roi, cv::Scalar(0, 0, 255), 4);
+    cv::rectangle(this->img, roi, cv::Scalar(0, 0, 255), 2);
     cv::Point position(roi.x+10,roi.y+roi.height+20);
     int fontFace = cv::FONT_HERSHEY_SIMPLEX;
-    double fontScale = 3;
+    double fontScale = 0.8;
     cv::Scalar fontColor(0, 255, 0);
-    int thickness = 4;
+    int thickness = 2;
     cv::putText(this->img, text, position, fontFace, fontScale, fontColor, thickness);
     return;
 }
 
 void Detection::ImgSave(std::string savepath)
 {
+    static struct timeval lastsavetime;
+    static struct timeval thissavetime;
+    gettimeofday(&thissavetime, NULL);
+    std::ofstream fout;
+    fout.open("/home/pi/www/data.txt");
+    fout << std::setprecision(4);
+    float temp = timeDiff(lastsavetime, thissavetime);
+    fout << temp << std::endl;
+    fout << (1000.0)/temp << std::endl;
     cv::imwrite(savepath,this->img);
+    gettimeofday(&lastsavetime, NULL);
     return;
 }
 
 Detection::Detection( )
 {
+    std::cout << "Attempting to load model..." << timeDiff( startTime, endTime ) << std::endl;
     gettimeofday( &startTime, nullptr );
     std::string modelPath = "/home/pi/intel/vehicle-detection-0200/FP16/vehicle-detection-0200.xml";
     core;
@@ -74,7 +84,6 @@ std::vector< cv::Rect2i >& Detection::get( )
     gettimeofday(&endTime, NULL);
     std::cout << "Async process time: " << timeDiff(startTime, endTime) << std::endl;
 
-    gettimeofday(&startTime, NULL);
     auto       output1      = infer_request.get_output_tensor( 0 );
     float     *outputData   = output1.data< float >( );
     const auto outputDims   = output1.get_shape( );
@@ -90,26 +99,21 @@ std::vector< cv::Rect2i >& Detection::get( )
         int y1 = int( outputData [ i * 7 + 4 ] * rows );
         int x2 = int( outputData [ i * 7 + 5 ] * cols );
         int y2 = int( outputData [ i * 7 + 6 ] * rows );
-        if (y2 - y1 < 20) continue;
+        if (y2 - y1 < 20) continue; // ignore far away cars
         ret.emplace_back( x1, y1, x2 - x1, y2 - y1 );
         // drawRectText(cv::Rect2i(x1, y1, x2 - x1, y2 - y1));
         // for ( int j = 0; j < 7; j++ )
         //     std::cout << outputData [ i * 7 + j ] << " ";
     }
     // ImgSave("/home/pi/VE473_project/img/result.png");
-    gettimeofday(&endTime, NULL);
-    //std::cout << "Get inference output: " << timeDiff(startTime, endTime) << ", with " << i <<
-    //    " numbers of outputs.\n";
     return ret;
 }
 
 void Detection::detect( cv::Mat &img )
 {
-
     this->img = img.clone();
     cols = img.cols;
     rows = img.rows;
-    gettimeofday(&startTime, NULL);
     imageConvert( img );
     gettimeofday(&startTime, NULL);
     infer_request.start_async( );

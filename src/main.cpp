@@ -40,11 +40,13 @@ int main(int argc, char* argv[])
     {
         if (!strcmp(argv[1],"2") && !strcmp(argv[2],"0"))
         {
-
+            camera0 = new Camera(0,2);
+            camera1 = new Camera(2,1);
         }
         else if (!strcmp(argv[1],"0") && !strcmp(argv[2],"2"))
         {
-
+            camera0 = new Camera(0,1);
+            camera1 = new Camera(2,2);
         }
         else
         {

@@ -14,6 +14,7 @@
 
 #define NONE "\033[m"
 #define RED "\033[0;32;31m"
+#define GREEN "\033[0;32;32m"
 
 enum Mode
 {

@@ -25,22 +25,21 @@ private:
     Mat left_dist_coeffs;
     Mat right_camera_matrix;
     Mat right_dist_coeffs;
-    cv::Ptr<cv::StereoBM> stereo;
     cv::Ptr< cv::StereoSGBM > sgbm;
     cv::Mat disparityMap;
     ushort* depthData;
     short int* dispData;
     cv::Mat ans;
     cv::Mat xyz;
-    cv::Mat mapLx, mapLy, mapRx, mapRy;
+    // cv::Mat mapLx, mapLy, mapRx, mapRy;
 
 public:
     DistanceCalc();
     //void distcalcinit(void);
     double calculateDistance(vector<Mat> & vec,cv::Rect2i & roi);
-    void calculateMap(vector<Mat> & vec);
+    void calculateMap(vector<Mat> & vec, cv::Mat & Q);
     double getBlockPropotion(cv::Rect2d & roi);
-    vector<Mat> photoprogress(vector<Mat> & vec);
+    // vector<Mat> photoprogress(vector<Mat> & vec);
 
 };
 

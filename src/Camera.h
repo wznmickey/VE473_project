@@ -5,6 +5,17 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include "config.h"
+#include <sys/time.h>
+#include "Detection.h"
+
+#include "opencv2/core/core.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <opencv2/core/types.hpp>
+#include <opencv2/videoio.hpp>
+#include <stdio.h>
+#include <opencv2/opencv.hpp>
+#include <vector>
+#include <opencv2/core/core.hpp>
 
 /**
  * @brief COMPLETE (0): Both left and right. 
@@ -27,7 +38,7 @@ class Camera
 {
     public:
         Camera(){};
-        Camera(int deviceid, int camid = 0);
+        Camera(int deviceid, int camid = 1);
         Camera(std::string filename);
         ~Camera();
 
@@ -45,11 +56,17 @@ class Camera
         void split_pic(void);
         bool isCam(){return camid != -1;}
         bool isVid(){return filename != "";}
-
     public:
         cv::Mat take_pic(bool split = true);
         cv::Mat get_pic(WhichCam p = COMPLETE);
         void save_pic(WhichCam p, std::string img_name);
+        void progress_photo(void);
+        cv::Mat & getQ(void){return this->Q;}
+
+    //Distance Configs
+    private:
+        cv::Mat Q;
+        cv::Mat mapLx, mapLy, mapRx, mapRy;
 
 };
 

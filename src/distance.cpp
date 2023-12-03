@@ -8,6 +8,14 @@ static int min2(int a, int b){
 static int max2(int a, int b) {
     return a>b?a:b;
 }
+
+static int rectify(int left, int right) {
+    int diff = right - left;
+    if (diff >= 300) return (diff / 5)<<1;
+    if (diff >= 100) return (diff / 3);
+    return 0;
+}
+
 // Wrong, do not use
 // Mat cameraMatrixL = (Mat_<double>(3, 3) << 475.8691, -2.9390,275.9443, 0, 476.0757, 228.3968, 0, 0, 1.);
 // Mat distCoeffL = (Mat_<double>(5, 1) << -0.0760, -0.0203, 0.00061261 ,-0.0072 , 0);
@@ -21,14 +29,14 @@ static int max2(int a, int b) {
 // Mat Q;
 
 // camera 1
-Mat cameraMatrixL = (Mat_<double>(3, 3) << 482.5015,0.1909,298.9531, 0, 483.5012,211.7897, 0, 0, 1.);
-Mat distCoeffL = (Mat_<double>(5, 1) << 0.1072,-0.1186,-0.0013,0.0027,0);
-Mat cameraMatrixR = (Mat_<double>(3, 3) << 481.6718,-0.0082,276.8195, 0, 482.3926,209.6866, 0, 0, 1);
-Mat distCoeffR = (Mat_<double>(5, 1) << 0.0984,-0.0805,0.00085982,0.0023, 0);
-Mat T = (Mat_<double>(3, 1) << -56.4343,-0.2152,-0.6567);//T平移向量
-Mat rec = (Mat_<double>(3, 3) << 1,0.00069102,0.00022640,-0.00069164,1,0.0027,-0.00022452,-0.0027,1);                //rec旋转向量，对应matlab om参数  我 
-Mat R;
-Mat Q;
+// Mat cameraMatrixL = (Mat_<double>(3, 3) << 482.5015,0.1909,298.9531, 0, 483.5012,211.7897, 0, 0, 1.);
+// Mat distCoeffL = (Mat_<double>(5, 1) << 0.1072,-0.1186,-0.0013,0.0027,0);
+// Mat cameraMatrixR = (Mat_<double>(3, 3) << 481.6718,-0.0082,276.8195, 0, 482.3926,209.6866, 0, 0, 1);
+// Mat distCoeffR = (Mat_<double>(5, 1) << 0.0984,-0.0805,0.00085982,0.0023, 0);
+// Mat T = (Mat_<double>(3, 1) << -56.4343,-0.2152,-0.6567);//T平移向量
+// Mat rec = (Mat_<double>(3, 3) << 1,0.00069102,0.00022640,-0.00069164,1,0.0027,-0.00022452,-0.0027,1);                //rec旋转向量，对应matlab om参数  我 
+// Mat R;
+// Mat Q;
 
 // camera 2
 // Mat cameraMatrixL = (Mat_<double>(3, 3) << 487.2015, 0.3897,287.4948, 0, 488.1516, 260.5195, 0, 0, 1.);
@@ -77,44 +85,43 @@ DistanceCalc::DistanceCalc() {
     sgbm->setSpeckleRange( setSpeckleRange );
     sgbm->setDisp12MaxDiff( setDisp12MaxDiff );
 
-                    Rect validROIL;//图像校正之后，会对图像进行裁剪，这里的validROI就是指裁剪之后的区域  
-                    Rect validROIR;
-                    Size imageSize = Size(640, 480);
-                    Rodrigues(rec, R); //Rodrigues变换
+    // Rect validROIL;// After calibration, the figure need to be cut
+    // Rect validROIR;
+    // Size imageSize = Size(640, 480);
+    // Rodrigues(rec, R); //Rodrigues Transformation
 
-                        //映射表  
-                    Mat Rl, Rr, Pl, Pr;              //校正旋转矩阵R，投影矩阵P 重投影矩阵Q
 
-                    stereoRectify(cameraMatrixL, distCoeffL, cameraMatrixR, distCoeffR, imageSize, R, T, Rl, Rr, Pl, Pr, Q, CALIB_ZERO_DISPARITY,
-                        0, imageSize, &validROIL, &validROIR);
-                    initUndistortRectifyMap(cameraMatrixL, distCoeffL, Rl, Pr, imageSize, CV_32FC1, mapLx, mapLy);
-                    initUndistortRectifyMap(cameraMatrixR, distCoeffR, Rr, Pr, imageSize, CV_32FC1, mapRx, mapRy);
+    // Mat Rl, Rr, Pl, Pr;
+    // stereoRectify(cameraMatrixL, distCoeffL, cameraMatrixR, distCoeffR, imageSize, R, T, Rl, Rr, Pl, Pr, Q, CALIB_ZERO_DISPARITY,
+    //               0, imageSize, &validROIL, &validROIR);
+
+                  
+    // initUndistortRectifyMap(cameraMatrixL, distCoeffL, Rl, Pr, imageSize, CV_32FC1, mapLx, mapLy);
+    // initUndistortRectifyMap(cameraMatrixR, distCoeffR, Rr, Pr, imageSize, CV_32FC1, mapRx, mapRy);
  
     //this->distcalcinit();
 }
 
-vector<Mat> DistanceCalc::photoprogress(vector<Mat> & vec) {
-    struct timeval startTime;
-    gettimeofday(&startTime,NULL);
-
+// vector<Mat> DistanceCalc::photoprogress(vector<Mat> & vec) {
+//     struct timeval startTime;
+//     gettimeofday(&startTime,NULL);
     
-    
-                Mat rectifyImageL, rectifyImageR;
-                cvtColor(vec[0], vec[0], COLOR_BGR2GRAY);
-                cvtColor(vec[1], vec[1], COLOR_BGR2GRAY);
-                remap(vec[0], rectifyImageL, mapLx, mapLy, INTER_LINEAR);
-                remap(vec[1], rectifyImageR, mapRx, mapRy, INTER_LINEAR);
+//     Mat rectifyImageL, rectifyImageR;
+//     cvtColor(vec[0], vec[0], COLOR_BGR2GRAY);
+//     cvtColor(vec[1], vec[1], COLOR_BGR2GRAY);
+//     remap(vec[0], rectifyImageL, mapLx, mapLy, INTER_LINEAR);
+//     remap(vec[1], rectifyImageR, mapRx, mapRy, INTER_LINEAR);
 
-                vector<Mat> ans;
-                ans.push_back(rectifyImageL);
-                ans.push_back(rectifyImageR);
-    struct timeval endTime;
-    gettimeofday(&endTime,NULL);
-    cout << "Photo calibrate time: "<<timeDiff(startTime,endTime)<<endl;
-    return ans;
-}
+//     vector<Mat> ans;
+//     ans.push_back(rectifyImageL);
+//     ans.push_back(rectifyImageR);
+//     struct timeval endTime;
+//     gettimeofday(&endTime,NULL);
+//     cout << "Photo calibrate time: "<<timeDiff(startTime,endTime)<<endl;
+//     return ans;
+// }
 
-void DistanceCalc::calculateMap(vector<Mat> & vec) {
+void DistanceCalc::calculateMap(vector<Mat> & vec, cv::Mat & Q) {
          
     sgbm->setMode( cv::StereoSGBM::MODE_HH );
     // sgbm->setMode( cv::StereoSGBM::MODE_SGBM_3WAY );
@@ -123,7 +130,7 @@ void DistanceCalc::calculateMap(vector<Mat> & vec) {
 
     // vec [ 1 ].convertTo( vec [ 1 ], CV_8UC1 );
 
-    vec = photoprogress(vec);
+    // vec = photoprogress(vec);
     struct timeval startTime;
     gettimeofday(&startTime,NULL);
     sgbm->compute( vec [0], vec [1], disparityMap );
@@ -173,8 +180,8 @@ double DistanceCalc::getBlockPropotion(cv::Rect2d & roi) {
 
 double DistanceCalc::calculateDistance(vector<Mat> & vec,cv::Rect2i & roi)
 {
-                struct timeval startTime;
-        gettimeofday(&startTime,NULL);
+    struct timeval startTime;
+    gettimeofday(&startTime,NULL);
 
     // auto temp = vec[0].clone();
     // cv::rectangle(temp, roi, cv::Scalar(0.2), 5);
@@ -189,25 +196,35 @@ double DistanceCalc::calculateDistance(vector<Mat> & vec,cv::Rect2i & roi)
 
     int height = disparityMap.rows;
     int width = disparityMap.cols;
-    int range_h = min2(height, roi.y + roi.height);
-    int range_w = min2(width, roi.x + roi.width);
-    for (int i = max2(0,roi.y); i < range_h; i++)
+
+    int height_up = min2(height, roi.y + roi.height);
+    int width_up = min2(width, roi.x + roi.width);
+    int height_down = max2(0, roi.y);
+    int width_down = max2(0, roi.x);
+
+    int recti = rectify(height_down, height_up);
+    height_down += recti;
+    height_up -= recti;
+    recti = rectify(width_down, width_up);
+    width_up -= recti;
+    width_down += recti;
+
+    for (int i = height_down; i < height_up; i++)
     {
-        for (int j = max2(0,roi.x); j < range_w; j++)
+        for (int j = width_down; j < width_up; j++)
         {
             auto point3 = xyz.at<Vec3f>(Point(j,i))[2];
-            if (point3>100000) continue;
-            if (point3<=10) continue;
+            if (point3 > 100000 || point3 <= 10) continue;
             finalDistance+=point3;
             countedPoint++;
         }
     }
     if (countedPoint ==0) return 100000;
-    cout<<"Point coundted in the rectangle: " <<countedPoint<<endl;
+    cout<<"Point coundted in the rectangle: " << countedPoint <<endl;
 
-        struct timeval endTime;
-gettimeofday(&endTime,NULL);
-cout << "c "<<timeDiff(startTime,endTime)<<endl;
+    struct timeval endTime;
+    gettimeofday(&endTime,NULL);
+    cout << "Distance calc time: "<<timeDiff(startTime,endTime)<<endl;
 
     return finalDistance/countedPoint/(double)2000; //
 }

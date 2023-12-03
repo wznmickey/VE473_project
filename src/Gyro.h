@@ -11,6 +11,7 @@ class Gyro
         int alertThreshold = 2;
         int alertCount = 0;
         bool alertFlag = false;
+        int alertness = 0;
         float joggleTolerance = 30.0;
     public:
         Gyro(){};
