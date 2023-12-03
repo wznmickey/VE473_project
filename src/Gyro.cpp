@@ -64,10 +64,15 @@ bool Gyro::getAlertFlag(void) {
 	return false;
 };
 
-bool Gyro::readGyro(void) {
+bool Gyro::readGyro(bool verbose) {
+	return true;
+	static int readCount = 0;
+	readCount = (readCount+1) %3;
 	float accx, accy, accz;
-	this->gyroscope.getAccel(&accx, &accy, &accz);
+	this->gyroscope.getGyro(&accx, &accy, &accz);
 	float accelerationMagnitude = sqrt(accx * accx + accy * accy + accz * accz);
+	if (verbose)
+		std::cout << "acc magnitude: " << accelerationMagnitude << std::endl;
 	if (accelerationMagnitude >= joggleTolerance) {
 		this->alertCount += 1;
 		if (alertCount >= alertThreshold) {

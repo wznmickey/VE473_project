@@ -9,7 +9,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-float timeDiff( struct timeval start, struct timeval end );
+float timeDiff( struct timeval & start, struct timeval & end );
 
 class Detection
 {
@@ -33,7 +33,7 @@ public:
     Detection( );
     std::vector< cv::Rect2i >&  get( );
     void detect( cv::Mat &img );
-    void              drawRectText( cv::Rect2i roi, std::string text);
+    void              drawRectText( cv::Rect2i & roi, std::string text);
     void              ImgSave(std::string savepath);
     void              imageConvert( cv::Mat &input );
 };

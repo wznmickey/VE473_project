@@ -12,12 +12,15 @@
 #include "Mode.h"
 #include <climits>
 
+#define NONE "\033[m"
+#define RED "\033[0;32;31m"
+
 enum Mode
 {
     EFFICIENCY, PERFORMANCE
 };
 
-bool EfficiencyMode(Camera*, Camera*, Gyro*, Buzzer*, DistanceCalc*, Detection*, Mode*);
-bool PerformanceMode(Camera*, Camera*, Gyro*, Buzzer*, DistanceCalc*, Detection*, Mode*);
+bool EfficiencyMode(Camera&, Camera&, Gyro&, Buzzer&, DistanceCalc&, Detection&, Mode&);
+bool PerformanceMode(Camera&, Camera&, Gyro&, Buzzer&, DistanceCalc&, Detection&, Mode&);
 
 #endif

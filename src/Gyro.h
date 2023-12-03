@@ -11,14 +11,14 @@ class Gyro
         int alertThreshold = 2;
         int alertCount = 0;
         bool alertFlag = false;
-        float joggleTolerance = 50.0;
+        float joggleTolerance = 30.0;
     public:
         Gyro(){};
         ~Gyro(){};
         bool GyroTurn(void);
         void setAlertThreshold(int th);
         bool getAlertFlag(void);
-        bool readGyro(void);
+        bool readGyro(bool verbose = false);
         void setjoggleTolerance(float j) {this->joggleTolerance = j;};
 };
 

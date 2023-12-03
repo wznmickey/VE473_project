@@ -27,7 +27,7 @@ class Camera
 {
     public:
         Camera(){};
-        Camera(int camid);
+        Camera(int deviceid, int camid = 0);
         Camera(std::string filename);
         ~Camera();
 
@@ -39,6 +39,7 @@ class Camera
         cv::Mat frameRight;
 
         int camid = -1;
+        int deviceid = -1;
         std::string filename = "";
         void cam_init(void);
         void split_pic(void);

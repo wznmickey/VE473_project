@@ -31,14 +31,17 @@ private:
     ushort* depthData;
     short int* dispData;
     cv::Mat ans;
+    cv::Mat xyz;
+    cv::Mat mapLx, mapLy, mapRx, mapRy;
 
 public:
     DistanceCalc();
-    void distcalcinit(void);
-    vector<Mat> seperatePhoto(cv::Mat image);
-    double calculateDistance(vector<Mat> vec,cv::Rect2d roi);
-    void calculateMap(vector<Mat> vec);
-    double getBlockPropotion(cv::Rect2d roi);
+    //void distcalcinit(void);
+    double calculateDistance(vector<Mat> & vec,cv::Rect2i & roi);
+    void calculateMap(vector<Mat> & vec);
+    double getBlockPropotion(cv::Rect2d & roi);
+    vector<Mat> photoprogress(vector<Mat> & vec);
+
 };
 
 #endif

@@ -3,7 +3,7 @@
 /**
  * @return float: time difference in ms
  */
-float timeDiff( struct timeval start, struct timeval end )
+float timeDiff( struct timeval & start, struct timeval & end )
 {
     float sdiff  = ( end.tv_sec - start.tv_sec ) * 1000.0f;
     float usdiff = ( end.tv_usec - start.tv_usec ) / 1000.0f;
@@ -31,14 +31,14 @@ void Detection::imageConvert( cv::Mat &input )
     std::cout << "Image Convert time: " << timeDiff(startTime, endTime) << "\n";
 }
 
-void Detection::drawRectText( cv::Rect2i roi, std::string text)
+void Detection::drawRectText( cv::Rect2i & roi, std::string text)
 {
-    cv::rectangle(this->img, roi, cv::Scalar(0, 0, 255), 2);
+    cv::rectangle(this->img, roi, cv::Scalar(0, 0, 255), 4);
     cv::Point position(roi.x+10,roi.y+roi.height+20);
     int fontFace = cv::FONT_HERSHEY_SIMPLEX;
-    double fontScale = 0.8;
-    cv::Scalar fontColor(255, 0, 0);
-    int thickness = 2;
+    double fontScale = 3;
+    cv::Scalar fontColor(0, 255, 0);
+    int thickness = 4;
     cv::putText(this->img, text, position, fontFace, fontScale, fontColor, thickness);
     return;
 }
@@ -80,17 +80,17 @@ std::vector< cv::Rect2i >& Detection::get( )
     const auto outputDims   = output1.get_shape( );
     const int  numDetections = outputDims [ 2 ];
 
-    int i;
-    for ( i = 0; i < numDetections; ++i )
+    for (int i = 0; i < numDetections; ++i )
     {
         float confidence = ( outputData [ i * 7 + 2 ] );
-        if ( confidence < 0.3 ) break;
+        if ( confidence < 0.5 ) break;
         // std::cout << "conf: " << confidence << std::endl;
         // Draw rectangle according to the info in output
         int x1 = int( outputData [ i * 7 + 3 ] * cols );
         int y1 = int( outputData [ i * 7 + 4 ] * rows );
         int x2 = int( outputData [ i * 7 + 5 ] * cols );
         int y2 = int( outputData [ i * 7 + 6 ] * rows );
+        if (y2 - y1 < 20) continue;
         ret.emplace_back( x1, y1, x2 - x1, y2 - y1 );
         // drawRectText(cv::Rect2i(x1, y1, x2 - x1, y2 - y1));
         // for ( int j = 0; j < 7; j++ )

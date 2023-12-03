@@ -1,17 +1,22 @@
 #include "Camera.h"
 #include <iostream>
 extern cfg::Config config;
-Camera::Camera(int camid)
+Camera::Camera(int deviceid, int camid)
 {
-    this->camid = (int)camid;
-    cap = new cv::VideoCapture(camid);
-    if (!cap->isOpened()) {
-        std::cerr << "Cannot open camera " << camid << std::endl;
+    if(camid != 1 && camid != 2)
+    {
+        std::cerr << "Not valid camera id: " << camid << " !" << std::endl;
         exit(-1);
     }
-    std::cout << "Camera " << camid << " init succeed" << std::endl;
+
+    this->deviceid = (int)deviceid;
+    cap = new cv::VideoCapture(deviceid);
+    if (!cap->isOpened()) {
+        std::cerr << "Cannot open camera " << deviceid << std::endl;
+        exit(-1);
+    }
+    std::cout << "Camera " << deviceid << " init succeed" << std::endl;
     cam_init();
-    //this->take_pic();
 }
 
 Camera::Camera(std::string filename)
@@ -66,7 +71,7 @@ void Camera::split_pic(void)
     if(frame.empty())
     {
         std::cerr << "Frame is empty! Can not split.\n";
-        if(this->isCam()) std::cerr << "Error in " << this->camid << std::endl;
+        if(this->isCam()) std::cerr << "Error in " << this->deviceid << std::endl;
         else std::cerr << "Error in " << this->filename << std::endl;
         return;
     } 
