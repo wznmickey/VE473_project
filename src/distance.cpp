@@ -132,8 +132,8 @@ void DistanceCalc::calculateMap(vector<Mat> & vec, cv::Mat & Q) {
     // vec [ 1 ].convertTo( vec [ 1 ], CV_8UC1 );
 
     // vec = photoprogress(vec);
-    struct timeval startTime;
-    gettimeofday(&startTime,NULL);
+    // struct timeval startTime;
+    // gettimeofday(&startTime,NULL);
     sgbm->compute( vec [0], vec [1], disparityMap );
     // Mat disp, disp8;  
     // disp = disparityMap.clone();
@@ -159,9 +159,9 @@ void DistanceCalc::calculateMap(vector<Mat> & vec, cv::Mat & Q) {
     // cout<<disparityMap<<endl;
     // this->dispData = (short int*)disparityMap.data;
     // this->depthData = (ushort*)ans.data;
-    struct timeval endTime;
-    gettimeofday(&endTime,NULL);
-    cout << "Map calculate time: "<<timeDiff(startTime,endTime)<<endl;
+    // struct timeval endTime;
+    // gettimeofday(&endTime,NULL);
+    // cout << "Map calculate time: "<<timeDiff(startTime,endTime)<<endl;
 
 }
 
@@ -219,7 +219,7 @@ double DistanceCalc::calculateDistance(vector<Mat> & vec,cv::Rect2i & roi)
         }
     }
     if (countedPoint ==0) return 100000;
-    cout<<"Point coundted in the rectangle: " << countedPoint <<endl;
+    // cout<<"Point counted in the rectangle: " << countedPoint <<endl;
 
 
     return finalDistance/countedPoint/(double)2000; //

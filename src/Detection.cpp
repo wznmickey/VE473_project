@@ -49,11 +49,10 @@ void Detection::ImgSave(std::string savepath)
     static struct timeval lastsavetime;
     static struct timeval thissavetime;
     gettimeofday(&thissavetime, NULL);
-    std::ofstream fout;
-    fout.open("/home/pi/www/time.txt");
+    std::ofstream fout("/home/pi/www/time.txt");
     fout << std::setprecision(4);
     float temp = timeDiff(lastsavetime, thissavetime);
-    fout << temp << std::endl;
+    fout << temp;
     cv::imwrite(savepath,this->img);
     gettimeofday(&lastsavetime, NULL);
     return;

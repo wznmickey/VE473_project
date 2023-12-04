@@ -59,10 +59,10 @@ bool EfficiencyMode(
         gyro.readGyro();
         if(!roi_vec.empty())
         {
-            for(cv::Rect2i roi: roi_vec)
+            for(cv::Rect2i& roi: roi_vec)
             {
                 dist = distances.calculateDistance(separated_photo, roi);
-                std::cout << "Distance of cam: " << dist << std::endl;
+                // std::cout << "Distance of cam: " << dist << std::endl;
                 minDist = min(dist,minDist);
                 detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
             }
@@ -129,14 +129,14 @@ bool PerformanceMode(
             gyro.readGyro();
             if(!roi_vec.empty())
             {
-                for(cv::Rect2i roi: roi_vec)
+                for(cv::Rect2i & roi: roi_vec)
                 {
                     dist = distances.calculateDistance(separated_photo, roi);
-                    std::cout << "Distance of cam0: " << dist << std::endl;
+                    // std::cout << "Distance of cam0: " << dist << std::endl;
                     minDist = min(dist,minDist);
                     detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
                 }
-                string filename = "/home/pi/www/show" + std::to_string(0) + ".jpg";
+                string filename = "/home/pi/www/show0.jpg";
                 detection.ImgSave(filename);
             }
             else Cam0NoRoi = true;
@@ -171,14 +171,14 @@ bool PerformanceMode(
             gyro.readGyro();
             if(!roi_vec.empty())
             {
-                for(cv::Rect2i roi: roi_vec)
+                for(cv::Rect2i & roi: roi_vec)
                 {
                     dist = distances.calculateDistance(separated_photo, roi);
-                    std::cout << "Distance of cam1: " << dist << std::endl;
+                    // std::cout << "Distance of cam1: " << dist << std::endl;
                     minDist = min(dist,minDist);
                     detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
                 }
-                string filename = "/home/pi/www/show" + std::to_string(1) + ".jpg";
+                string filename = "/home/pi/www/show1.jpg";
                 detection.ImgSave(filename);
             }
             else Cam1NoRoi = true;

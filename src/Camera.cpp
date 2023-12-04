@@ -85,8 +85,8 @@ void Camera::cam_init(void)
 
 void Camera::progress_photo(void)
 {
-    struct timeval startTime;
-    gettimeofday(&startTime,NULL);
+    //struct timeval startTime;
+    //gettimeofday(&startTime,NULL);
     
     cv::Mat rectifyImageL, rectifyImageR;
     cv::cvtColor(this->frameLeft, this->frameLeft, cv::COLOR_BGR2GRAY);
@@ -97,9 +97,9 @@ void Camera::progress_photo(void)
     this->frameLeft = rectifyImageL;
     this->frameRight = rectifyImageR;
 
-    struct timeval endTime;
-    gettimeofday(&endTime,NULL);
-    std::cout << "Photo calibrate time: "<< timeDiff(startTime,endTime) << std::endl;
+    //struct timeval endTime;
+    //gettimeofday(&endTime,NULL);
+    //std::cout << "Photo calibrate time: "<< timeDiff(startTime,endTime) << std::endl;
 
 }
 
