@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Detection</title>
+    <style>
+        .blinking {
+            animation: blink 0.2s infinite alternate;
+        }
+
+        @keyframes blink {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+
+        <ellipse cx="200" cy="200" rx="20" ry="30" fill="blue" />
+
+        <ellipse cx="200" cy="200" rx="120" ry="180" fill="transparent" stroke="gray" stroke-width="5" />
+
+        <ellipse cx="200" cy="200" rx="80" ry="120" fill="transparent" stroke="gray" stroke-width="5" />
+
+        <ellipse cx="200" cy="200" rx="40" ry="60" fill="transparent" stroke="gray" stroke-width="5" />
+
+    </svg>
+
+    <footer>
+        <p>UM-SJTU JI VE473 </p>
+    </footer>
+
+
+</body>
+
+<script>
+
+    function removeDection(x,times) {
+        var svgContainer = document.getElementsByTagName('svg')[0];
+
+        // 获取要删除的元素
+        var circleToRemove = document.getElementById(x);
+
+        // 从SVG容器中删除元素
+        svgContainer.removeChild(circleToRemove);
+    }
+    function addDection(startx, starty, endx, endy, rx, ry) {
+        var svgContainer = document.getElementsByTagName('svg')[0];
+
+        var newD = document.createElementNS("http://www.w3.org/2000/svg", 'path');
+        newD.setAttribute('d', 'M' + startx + "," + starty + " A" + rx + "," + ry + " 0 0,1 " + endx + "," + endy);
+
+        newD.setAttribute('fill', 'transparent');
+        newD.setAttribute('stroke', 'red');
+        newD.setAttribute('stroke-width', '8');
+        newD.setAttribute('class', 'blinking');
+        x = new Date().getTime()
+        newD.setAttribute('id', x)
+        svgContainer.appendChild(newD);
+        setTimeout(function () {
+            removeDection(x)
+        }, 2000)
+    }
+    // distance unit: dm
+    // left right: pixel
+    // total 640 pixel
+    function getOne(distance, leftone, rightone, isLeft, isBehind) {
+        rx = distance
+        ry = distance * 1.5
+        if (isLeft) {
+            startx = 200 - rx
+            starty = 200 + Math.tan(((320 - leftone) * 50 / 320) / 180 * Math.PI) * distance
+            endx = 200 - rx
+            endy = 200 - Math.tan(((rightone - 320) * 50 / 320) / 180 * Math.PI) * distance
+            addDection(startx, starty, endx, endy, rx, ry)
+        }
+    }
+
+    function test() {
+        // addDection(120,200,300,250,80,120);
+        getOne(30, 0, 640, true, false);
+    }
+</script>
+
+</html>
