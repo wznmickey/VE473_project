@@ -7,33 +7,34 @@
     <title>Car Detection</title>
     <style>
         .blinking {
-            animation: blink 0.2s infinite alternate;
+            animation: disappear 0.5s forwards;
         }
 
-        @keyframes blink {
-            from {
-                opacity: 0;
-            }
-
+        @keyframes disappear {
             to {
-                opacity: 1;
+                opacity: 0;
             }
         }
     </style>
 </head>
 
 <body>
-    <p id="fps" style="font-size: xx-large;"> fps = 0 </p>
-    <div id="photos" style="display: none;">
-        <img id="cameraLeft" src="show0.jpg" align="middle">
-        <img id="cameraRight" src="show1.jpg" ,align="middle">
+    <p id="fps" style="font-size: xx-large;max-width: 80vw;max-height:10vh"> fps = 0 </p>
+    <div id="photos" style="display: none;max-width: 80vw;max-height:45vh">
+        <img id="cameraLeft" src="show0.jpg" style="max-width: 35vw;max-height:45vh">
+        <img id="cameraRight" src="show1.jpg" style="max-width: 35vw;max-height:45vh">
     </div>
-    <svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="200" cy="200" rx="20" ry="30" fill="blue" />
-        <ellipse cx="200" cy="200" rx="120" ry="180" fill="transparent" opacity="0.5" stroke="gray" stroke-width="5" />
-        <ellipse cx="200" cy="200" rx="80" ry="120" fill="transparent" opacity="0.5" stroke="gray" stroke-width="5" />
-        <ellipse cx="200" cy="200" rx="40" ry="60" fill="transparent" opacity="0.5" stroke="gray" stroke-width="5" />
-    </svg>
+    <div style="max-width: 80vw;max-height:40vh">
+        <svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="200" cy="200" rx="20" ry="30" fill="blue" />
+            <ellipse cx="200" cy="200" rx="120" ry="180" fill="transparent" opacity="0.5" stroke="#e6e6e6"
+                stroke-width="5" />
+            <ellipse cx="200" cy="200" rx="80" ry="120" fill="transparent" opacity="0.5" stroke="#e6e6e6"
+                stroke-width="5" />
+            <ellipse cx="200" cy="200" rx="40" ry="60" fill="transparent" opacity="0.5" stroke="#e6e6e6"
+                stroke-width="5" />
+        </svg>
+    </div>
     <button id="display" onclick="dis()"> display images </button>
     <button id="hidden" onclick="hid()" style="display: none;"> hidden images </button>
     <footer>
@@ -92,20 +93,21 @@
                 document.getElementById("fps").innerHTML = "fps = " + String(1000 / Number(a)).substring(0, 5);
             }
         }
-        // setTimeout(updateText, 100);
+        setTimeout(updateText, 100);
     }
 
 
-    function removeDection(x, times) {
-        var svgContainer = document.getElementsByTagName('svg')[0];
+    // function removeDection(x, times) {
+    //     var svgContainer = document.getElementsByTagName('svg')[0];
 
-        // 获取要删除的元素
-        var circleToRemove = document.getElementById(x);
+    //     // 获取要删除的元素
+    //     var circleToRemove = document.getElementById(x);
 
-        // 从SVG容器中删除元素
-        svgContainer.removeChild(circleToRemove);
-    }
-    function addDection(startx, starty, endx, endy, rx, ry, order) {
+    //     // 从SVG容器中删除元素
+    //     svgContainer.removeChild(circleToRemove);
+    //     console.log("remove" + x)
+    // }
+    function addDection(startx, starty, endx, endy, rx, ry, order, color) {
         var svgContainer = document.getElementsByTagName('svg')[0];
 
         var newD = document.createElementNS("http://www.w3.org/2000/svg", 'path');
@@ -113,15 +115,16 @@
         else newD.setAttribute('d', 'M' + startx + "," + starty + " A" + rx + "," + ry + " 0 0,1 " + endx + "," + endy);
 
         newD.setAttribute('fill', 'transparent');
-        newD.setAttribute('stroke', 'red');
+        newD.setAttribute('stroke', color);
         newD.setAttribute('stroke-width', '8');
         newD.setAttribute('class', 'blinking');
         x = new Date().getTime()
         newD.setAttribute('id', x)
+        console.log("set" + x)
         svgContainer.appendChild(newD);
-        setTimeout(function () {
-            removeDection(x)
-        }, 2000)
+        // setTimeout(function () {
+        //     removeDection(x)
+        // }, 50)
     }
     // distance unit: dm
     // left right: pixel
@@ -129,19 +132,23 @@
     function getOne(distance, leftone, rightone, isLeft, isBehind) {
         rx = distance
         ry = distance * 1.5
+        color = "green"
+        if (distance < 100) color = "orange"
+        if (distance < 40) color = "red"
+
         if (isLeft) {
             startx = 200 - rx
             starty = 200 + Math.tan(((320 - leftone) * 50 / 320) / 180 * Math.PI) * distance
             endx = 200 - rx
             endy = 200 - Math.tan(((rightone - 320) * 50 / 320) / 180 * Math.PI) * distance
-            addDection(startx, starty, endx, endy, rx, ry, 1)
+            addDection(startx, starty, endx, endy, rx, ry, 1, color)
         }
         if (isBehind) {
             startx = 200 - Math.tan(((320 - leftone) * 50 / 320) / 180 * Math.PI) * distance
             starty = 200 + ry
             endx = 200 + Math.tan(((rightone - 320) * 50 / 320) / 180 * Math.PI) * distance
             endy = 200 + ry
-            addDection(startx, starty, endx, endy, rx, ry, 0)
+            addDection(startx, starty, endx, endy, rx, ry, 0, color)
         }
     }
     function test() {
@@ -151,22 +158,23 @@
     function updateAni() {
         function c0() {
             const http = new XMLHttpRequest();
-            const url = "camera0.txt?t=" + new Date().getTime();
+            const url = "camera2.txt?t=" + new Date().getTime();
             http.open("GET", url);
             http.send();
             http.onreadystatechange = function () {
                 if (http.readyState == 4 && http.status == 200) {
                     a = http.responseText;
-                    let code = a.split(/[(\r\n)\r\n]+/); 
-                    code.forEach((item, index) => { 
-                        if (!item) { 
+                    console.log(a);
+                    let code = a.split(/[(\r\n)\r\n]+/);
+                    code.forEach((item, index) => {
+                        if (!item) {
                             code.splice(index, 1);
                         }
                     })
-                    code = Array.from(new Set(code)); 
-                    code.forEach((item, index) => { 
+                    code = Array.from(new Set(code));
+                    code.forEach((item, index) => {
                         let code2 = item.split(/[(\r\n\s)\r\n\s]+/);
-                        getOne(Number(code2[0])*10, Number(code2[1]), Number(code2[2]),false,true) 
+                        getOne(Number(code2[0]) * 10, Number(code2[1]), Number(code2[2]), false, true)
                     })
                 }
             }
@@ -180,22 +188,24 @@
             http.onreadystatechange = function () {
                 if (http.readyState == 4 && http.status == 200) {
                     a = http.responseText;
-                    let code = a.split(/[(\r\n)\r\n]+/); 
-                    code.forEach((item, index) => { 
-                        if (!item) { 
+                    console.log(a);
+                    let code = a.split(/[(\r\n)\r\n]+/);
+                    code.forEach((item, index) => {
+                        if (!item) {
                             code.splice(index, 1);
                         }
                     })
-                    code = Array.from(new Set(code)); 
-                    code.forEach((item, index) => { 
+                    code = Array.from(new Set(code));
+                    code.forEach((item, index) => {
                         let code2 = item.split(/[(\r\n\s)\r\n\s]+/);
-                        getOne(Number(code2[0])*10, Number(code2[1]), Number(code2[2]),true,false) 
+                        getOne(Number(code2[0]) * 10, Number(code2[1]), Number(code2[2]), true, false)
                     })
                 }
             }
         }
         c0();
         c1();
+        setTimeout(updateAni, 100);
     }
     init();
     updateImage();
