@@ -28,11 +28,11 @@
 
         <ellipse cx="200" cy="200" rx="20" ry="30" fill="blue" />
 
-        <ellipse cx="200" cy="200" rx="120" ry="180" fill="transparent" stroke="gray" stroke-width="5" />
+        <ellipse cx="200" cy="200" rx="120" ry="180" fill="transparent" opacity="0.5" stroke="gray" stroke-width="5" />
 
-        <ellipse cx="200" cy="200" rx="80" ry="120" fill="transparent" stroke="gray" stroke-width="5" />
+        <ellipse cx="200" cy="200" rx="80" ry="120" fill="transparent" opacity="0.5" stroke="gray" stroke-width="5" />
 
-        <ellipse cx="200" cy="200" rx="40" ry="60" fill="transparent" stroke="gray" stroke-width="5" />
+        <ellipse cx="200" cy="200" rx="40" ry="60" fill="transparent" opacity="0.5" stroke="gray" stroke-width="5" />
 
     </svg>
 
@@ -45,7 +45,7 @@
 
 <script>
 
-    function removeDection(x,times) {
+    function removeDection(x, times) {
         var svgContainer = document.getElementsByTagName('svg')[0];
 
         // 获取要删除的元素
@@ -54,11 +54,12 @@
         // 从SVG容器中删除元素
         svgContainer.removeChild(circleToRemove);
     }
-    function addDection(startx, starty, endx, endy, rx, ry) {
+    function addDection(startx, starty, endx, endy, rx, ry, order) {
         var svgContainer = document.getElementsByTagName('svg')[0];
 
         var newD = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-        newD.setAttribute('d', 'M' + startx + "," + starty + " A" + rx + "," + ry + " 0 0,1 " + endx + "," + endy);
+        if (order == 0) newD.setAttribute('d', 'M' + startx + "," + starty + " A" + rx + "," + ry + " 0 0,0 " + endx + "," + endy);
+        else newD.setAttribute('d', 'M' + startx + "," + starty + " A" + rx + "," + ry + " 0 0,1 " + endx + "," + endy);
 
         newD.setAttribute('fill', 'transparent');
         newD.setAttribute('stroke', 'red');
@@ -82,13 +83,19 @@
             starty = 200 + Math.tan(((320 - leftone) * 50 / 320) / 180 * Math.PI) * distance
             endx = 200 - rx
             endy = 200 - Math.tan(((rightone - 320) * 50 / 320) / 180 * Math.PI) * distance
-            addDection(startx, starty, endx, endy, rx, ry)
+            addDection(startx, starty, endx, endy, rx, ry, 1)
+        }
+        if (isBehind) {
+            startx = 200 - Math.tan(((320 - leftone) * 50 / 320) / 180 * Math.PI) * distance
+            starty = 200 + ry
+            endx = 200 + Math.tan(((rightone - 320) * 50 / 320) / 180 * Math.PI) * distance
+            endy = 200 + ry
+            addDection(startx, starty, endx, endy, rx, ry, 0)
         }
     }
-
     function test() {
         // addDection(120,200,300,250,80,120);
-        getOne(30, 0, 640, true, false);
+        getOne(70, 200, 370, false, true);
     }
 </script>
 
