@@ -116,6 +116,7 @@ void Camera::progress_photo(void)
  */
 cv::Mat Camera::take_pic(bool split)
 {
+    // std::cout << "Reading frame " <<frameNum++ << "..." << std::endl;
     cap->read(frame);
     if (this->isVid())
     {

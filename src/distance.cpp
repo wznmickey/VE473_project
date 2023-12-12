@@ -187,9 +187,9 @@ double DistanceCalc::calculateDistance(vector<Mat> & vec,cv::Rect2i & roi)
     // cv::rectangle(temp, roi, cv::Scalar(0.2), 5);
     // cv::imwrite("./tmp.jpg", temp);
 
-    double prop = getBlockPropotion(roi);
-    if (prop >= 0.6) return (13.64*prop*prop-24.767*prop+11.474)*4;
-    if (prop < 0.05) return 20;
+    //double prop = getBlockPropotion(roi);
+    //if (prop >= 0.6) return (13.64*prop*prop-24.767*prop+11.474)*4;
+    //if (prop < 0.05) return 20;
 
     double finalDistance = 0;
     double countedPoint = 0;

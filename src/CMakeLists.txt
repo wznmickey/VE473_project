@@ -15,7 +15,7 @@ include_directories(${InferenceEngine_INCLUDE_DIRS})
 include_directories(${OpenVINO_INCLUDE_DIRS})
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -DEFF_DEBUG")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DDEMO -DPERF_DEBUG")
 add_executable(main Camera.cpp Detection.cpp distance.cpp Gyro.cpp buzzer.cpp Mode.cpp main.cpp)
 target_link_libraries(  main  ${OURPATH}/libopenvino.so ${OpenCV_LIBS} MPU6050 wiringPi)
 

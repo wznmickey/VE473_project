@@ -48,7 +48,7 @@ class Camera
         cv::Mat frame;
         cv::Mat frameLeft;
         cv::Mat frameRight;
-
+        int frameNum=0;
         int camid = -1;
         int deviceid = -1;
         std::string filename = "";

@@ -1,5 +1,5 @@
 #include "Mode.h"
-
+#include <sstream>
 //Return False if error occurs and needs to stop.
 bool EfficiencyMode(
     Camera& camera0, 
@@ -83,11 +83,11 @@ bool EfficiencyMode(
         {
             buzzer.buzz(500);
             mode = PERFORMANCE;
-            printf(RED "Switch to Performance mode\n" NONE);
+            printf(RED "                    Switch to Performance mode\n" NONE);
         }
 
 	if (mode == PERFORMANCE) {
-		printf(RED "Switch to Performance mode\n" NONE);
+		printf(RED "                    Switch to Performance mode\n" NONE);
 	}
         if (EfficiencyTime < 0)
         {
@@ -108,13 +108,14 @@ bool PerformanceMode(
     Detection& detection, 
     Mode& mode)
     {
-        std::ofstream outFileCam1("/home/pi/www/camera1.txt",std::ios::trunc);
-        std::ofstream outFileCam2("/home/pi/www/camera2.txt",std::ios::trunc);
-
-        if(!outFileCam1.is_open() || !outFileCam2.is_open())
-        {
-            std::cerr << "File can not open!" << std::endl;
-        }
+        // std::ofstream outFileCam1("/home/pi/www/camera1.txt");
+        // std::ofstream outFileCam2("/home/pi/www/camera2.txt");
+        std::stringstream outFileCam1;
+        std::stringstream outFileCam2;
+        // if(!outFileCam1.is_open() || !outFileCam2.is_open())
+        // {
+        //     std::cerr << "File can not open!" << std::endl;
+        // }
 
         static cv::Mat frame0;
         static cv::Mat frame1;
@@ -135,8 +136,12 @@ bool PerformanceMode(
             frame0 = camera0.take_pic();
             if(frame0.empty())
             {
-                outFileCam1.close();
-                outFileCam2.close();
+                std::ofstream outCam1("/home/pi/www/camera1.txt");
+                std::ofstream outCam2("/home/pi/www/camera2.txt");
+                outCam1<<outFileCam1.str();
+                outCam2<<outFileCam2.str();
+                outCam1.close();
+                outCam2.close();
                 return false;
             } 
             frameL = camera0.get_pic(LEFT);
@@ -156,15 +161,17 @@ bool PerformanceMode(
             {
                 for(cv::Rect2i & roi: roi_vec)
                 {
-                    dist = distances.calculateDistance(separated_photo, roi);
+                    dist = distances.calculateDistance(separated_photo, roi) / 3;
                     // std::cout << "Distance of cam0: " << dist << std::endl;
                     minDist = min(dist,minDist);
                     detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
+                    std::cout<<"camera 0"<<camera0.getcamid()<<std::endl;
+
                     if (camera0.getcamid()==1){
-                        outFileCam1 << std::to_string(dist).substr(0, 4)<< " " << roi.x << " " << (roi.x+roi.width) << std::endl;
+                        outFileCam1 << std::to_string(dist).substr(0, 4)<< " " << roi.x << " " << (roi.x+roi.width) << "\n";
                     }
                     else{
-                        outFileCam2 << std::to_string(dist).substr(0, 4)<< " " << roi.x << " " << (roi.x+roi.width) << std::endl;
+                        outFileCam2 << std::to_string(dist).substr(0, 4)<< " " << roi.x << " " << (roi.x+roi.width) << "\n";
                     }
                 }
                 string filename = "/home/pi/www/show0.jpg";
@@ -175,6 +182,9 @@ bool PerformanceMode(
         else
         {
             Cam0NoRoi = false;
+            #ifdef DEMO
+            frame0 = camera0.take_pic();
+            #endif
             if(Cam1NoRoi) //Both roi empty
             {
                 mode = EFFICIENCY;
@@ -185,8 +195,12 @@ bool PerformanceMode(
             frame1 = camera1.take_pic();
             if(frame1.empty())
             {
-                outFileCam1.close();
-                outFileCam2.close();
+                std::ofstream outCam1("/home/pi/www/camera1.txt");
+                std::ofstream outCam2("/home/pi/www/camera2.txt");
+                outCam1<<outFileCam1.str();
+                outCam2<<outFileCam2.str();
+                outCam1.close();
+                outCam2.close();
                 return false;
             }
             frameL = camera1.get_pic(LEFT);
@@ -208,15 +222,16 @@ bool PerformanceMode(
             {
                 for(cv::Rect2i & roi: roi_vec)
                 {
-                    dist = distances.calculateDistance(separated_photo, roi);
+                    dist = distances.calculateDistance(separated_photo, roi)/ 1.5;
                     // std::cout << "Distance of cam1: " << dist << std::endl;
                     minDist = min(dist,minDist);
                     detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
-                    if (camera0.getcamid()==1){
-                        outFileCam1 << std::to_string(dist).substr(0, 4)<< " " << roi.x << " " << (roi.x+roi.width) << std::endl;
+                    std::cout<<"camera 1"<<camera1.getcamid()<<std::endl;
+                    if (camera1.getcamid()==1){
+                        outFileCam1 << std::to_string(dist).substr(0, 4)<< " " << roi.x << " " << (roi.x+roi.width) << "\n";
                     }
                     else{
-                        outFileCam2 << std::to_string(dist).substr(0, 4)<< " " << roi.x << " " << (roi.x+roi.width) << std::endl;
+                        outFileCam2 << std::to_string(dist).substr(0, 4)<< " " << roi.x << " " << (roi.x+roi.width) << "\n";
                     }
                 }
                 string filename = "/home/pi/www/show1.jpg";
@@ -227,16 +242,23 @@ bool PerformanceMode(
         else
         {
             Cam1NoRoi = false;
+            #ifdef DEMO
+            frame1 = camera1.take_pic();
+            #endif
             if(Cam0NoRoi) //Both roi empty
             {
                 mode = EFFICIENCY;
             }
         }
         
-        if(mode  == EFFICIENCY) printf(GREEN "Switch to Efficiency mode\n" NONE);
+        if(mode  == EFFICIENCY) printf(GREEN "                  Switch to Efficiency mode\n" NONE);
 
         if(minDist < 1.5) buzzer.buzz(500);
-        outFileCam1.close();
-        outFileCam2.close();
+        std::ofstream outCam1("/home/pi/www/camera1.txt");
+        std::ofstream outCam2("/home/pi/www/camera2.txt");
+        outCam1<<outFileCam1.str();
+        outCam2<<outFileCam2.str();
+        outCam1.close();
+        outCam2.close();
         return true;
     }

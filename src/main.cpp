@@ -32,8 +32,8 @@ int main(int argc, char* argv[])
     Camera * camera0;
     Camera * camera1;
     #ifdef DEMO
-    camera0 = new Camera("/home/pi/VE473_project/left.mp4",1);
-    camera1 = new Camera("/home/pi/VE473_project/behind.mp4",2);
+    camera0 = new Camera("/home/pi/videos/20231212_second/left.mp4",1);
+    camera1 = new Camera("/home/pi/videos/20231212_second/behind.mp4",2);
     #else
     if (argc == 1)
     {

@@ -52,7 +52,7 @@ void Detection::ImgSave(std::string savepath)
     std::ofstream fout("/home/pi/www/time.txt");
     fout << std::setprecision(4);
     float temp = timeDiff(lastsavetime, thissavetime);
-    fout << temp;
+    fout << temp << std::endl;
     cv::imwrite(savepath,this->img);
     gettimeofday(&lastsavetime, NULL);
     return;
