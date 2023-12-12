@@ -31,6 +31,10 @@ int main(int argc, char* argv[])
 {
     Camera * camera0;
     Camera * camera1;
+    #ifdef DEMO
+    camera0 = new Camera("/home/pi/VE473_project/left.mp4",1);
+    camera1 = new Camera("/home/pi/VE473_project/behind.mp4",2);
+    #else
     if (argc == 1)
     {
         camera0 = new Camera(0);
@@ -64,6 +68,8 @@ int main(int argc, char* argv[])
         std::cerr << "Wrong number of arguments! Aborting" << std::endl;
         return 0;
     }
+    #endif
+    
 
     signal(SIGINT, signal_callback_handler);
     // Camera camera0("/home/pi/videos/good_videos/hit_car_left.mp4");
@@ -89,14 +95,22 @@ int main(int argc, char* argv[])
         #endif
         if(mode == PERFORMANCE)
         {
-            if(!PerformanceMode(*camera0, *camera1, gyro, buzzer, distances, detection, mode)) break;
+            if(!PerformanceMode(*camera0, *camera1, gyro, buzzer, distances, detection, mode)) flag = false;
         } 
         else 
         {
-            if(!EfficiencyMode(*camera0, *camera1, gyro, buzzer, distances, detection, mode)) break;
+            if(!EfficiencyMode(*camera0, *camera1, gyro, buzzer, distances, detection, mode)) flag = false;
         }
         frameCount++;
         std::cout << frameCount << std::endl;
+        #ifdef DEMO
+        if(flag == false && (camera0->isEmpty() || camera1->isEmpty()))
+        {
+            camera0->resetVid();
+            camera1->resetVid();
+            flag = true;
+        }
+        #endif
     }
     delete camera0;
     delete camera1;

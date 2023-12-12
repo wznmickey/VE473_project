@@ -20,14 +20,16 @@ Camera::Camera(int deviceid, int camid)
     cam_init();
 }
 
-Camera::Camera(std::string filename)
+Camera::Camera(std::string filename, int camid)
 {
     this->filename = filename;
+    this->camid = camid;
     cap = new cv::VideoCapture(filename);
     if (!cap->isOpened()) {
         std::cerr << "Cannot open video: "<< filename << std::endl;
         exit(-1);
     }
+    cam_init();
 }
 
 /**
@@ -36,9 +38,12 @@ Camera::Camera(std::string filename)
  */
 void Camera::cam_init(void)
 {
-    cap->set(3, config.width);
-    cap->set(4, config.height);
-    cap->set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M','J','P','G'));
+    if (!this->isVid())
+    {
+        cap->set(3, config.width);
+        cap->set(4, config.height);
+        cap->set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M','J','P','G'));
+    }   
     //cap.set(5, config.fps);
     using cv::Mat;
     using cv::Mat_;
@@ -187,6 +192,18 @@ void Camera::save_pic(WhichCam p, std::string img_name = "img.jpg")
         if(!frame.empty()) cv::imwrite(config.savepath+img_name, frame);
         else std::cerr << "Frame is empty! Can not save Complete.\n";
         break;
+    }
+}
+
+void Camera::resetVid(void)
+{
+    if(this->isVid())
+    {
+        this->cap->set(cv::CAP_PROP_POS_FRAMES, 0);
+    }
+    else
+    {
+        std::cerr << "Can not reset a camera!" << std::endl;
     }
 }
 

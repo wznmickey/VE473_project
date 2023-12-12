@@ -38,7 +38,7 @@ public:
     //void distcalcinit(void);
     double calculateDistance(vector<Mat> & vec,cv::Rect2i & roi);
     void calculateMap(vector<Mat> & vec, cv::Mat & Q);
-    double getBlockPropotion(cv::Rect2d & roi);
+    double getBlockPropotion(cv::Rect2i & roi);
     // vector<Mat> photoprogress(vector<Mat> & vec);
 
 };

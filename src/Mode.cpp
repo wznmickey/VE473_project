@@ -33,10 +33,17 @@ bool EfficiencyMode(
             break;
         }
         
+        std::ofstream outFileCam;
+        if(camera->getcamid() == 1) outFileCam = std::ofstream("/home/pi/www/camera1.txt",std::ios::trunc);
+        else outFileCam = std::ofstream("/home/pi/www/camera2.txt",std::ios::trunc);
+        
         static cv::Mat frame;
         frame = camera->take_pic();
-        if (frame.empty()) return false;
-
+        if (frame.empty()) 
+        {
+            outFileCam.close();
+            return false;
+        }
         std::vector<cv::Mat> separated_photo;
         vector<cv::Rect2i> roi_vec;
         static cv::Mat frameL;
@@ -65,6 +72,7 @@ bool EfficiencyMode(
                 // std::cout << "Distance of cam: " << dist << std::endl;
                 minDist = min(dist,minDist);
                 detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
+                outFileCam << std::to_string(dist).substr(0, 4)<< " " << roi.x << " " << (roi.x+roi.width) << std::endl;
             }
             string filename = "/home/pi/www/show" + std::to_string(whichcam) + ".jpg";
             detection.ImgSave(filename);
@@ -78,12 +86,16 @@ bool EfficiencyMode(
             printf(RED "Switch to Performance mode\n" NONE);
         }
 
+	if (mode == PERFORMANCE) {
+		printf(RED "Switch to Performance mode\n" NONE);
+	}
         if (EfficiencyTime < 0)
         {
             gettimeofday(&endTime, NULL);
             EfficiencyTime = timeDiff(startTime, endTime);
         } 
         usleep(int(1000*EfficiencyTime));
+        outFileCam.close();
         return true;
     }
 
@@ -96,6 +108,14 @@ bool PerformanceMode(
     Detection& detection, 
     Mode& mode)
     {
+        std::ofstream outFileCam1("/home/pi/www/camera1.txt",std::ios::trunc);
+        std::ofstream outFileCam2("/home/pi/www/camera2.txt",std::ios::trunc);
+
+        if(!outFileCam1.is_open() || !outFileCam2.is_open())
+        {
+            std::cerr << "File can not open!" << std::endl;
+        }
+
         static cv::Mat frame0;
         static cv::Mat frame1;
         static cv::Mat frameL;
@@ -113,7 +133,12 @@ bool PerformanceMode(
         if(!Cam0NoRoi)
         {
             frame0 = camera0.take_pic();
-            if(frame0.empty()) return false;
+            if(frame0.empty())
+            {
+                outFileCam1.close();
+                outFileCam2.close();
+                return false;
+            } 
             frameL = camera0.get_pic(LEFT);
             detection.detect(frameL);
             gyro.readGyro();
@@ -135,6 +160,12 @@ bool PerformanceMode(
                     // std::cout << "Distance of cam0: " << dist << std::endl;
                     minDist = min(dist,minDist);
                     detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
+                    if (camera0.getcamid()==1){
+                        outFileCam1 << std::to_string(dist).substr(0, 4)<< " " << roi.x << " " << (roi.x+roi.width) << std::endl;
+                    }
+                    else{
+                        outFileCam2 << std::to_string(dist).substr(0, 4)<< " " << roi.x << " " << (roi.x+roi.width) << std::endl;
+                    }
                 }
                 string filename = "/home/pi/www/show0.jpg";
                 detection.ImgSave(filename);
@@ -152,8 +183,12 @@ bool PerformanceMode(
         if(!Cam1NoRoi)
         {
             frame1 = camera1.take_pic();
-            if(frame1.empty()) return false;
-
+            if(frame1.empty())
+            {
+                outFileCam1.close();
+                outFileCam2.close();
+                return false;
+            }
             frameL = camera1.get_pic(LEFT);
 
             detection.detect(frameL);
@@ -177,6 +212,12 @@ bool PerformanceMode(
                     // std::cout << "Distance of cam1: " << dist << std::endl;
                     minDist = min(dist,minDist);
                     detection.drawRectText(roi,std::to_string(dist).substr(0, 4));
+                    if (camera0.getcamid()==1){
+                        outFileCam1 << std::to_string(dist).substr(0, 4)<< " " << roi.x << " " << (roi.x+roi.width) << std::endl;
+                    }
+                    else{
+                        outFileCam2 << std::to_string(dist).substr(0, 4)<< " " << roi.x << " " << (roi.x+roi.width) << std::endl;
+                    }
                 }
                 string filename = "/home/pi/www/show1.jpg";
                 detection.ImgSave(filename);
@@ -195,5 +236,7 @@ bool PerformanceMode(
         if(mode  == EFFICIENCY) printf(GREEN "Switch to Efficiency mode\n" NONE);
 
         if(minDist < 1.5) buzzer.buzz(500);
+        outFileCam1.close();
+        outFileCam2.close();
         return true;
     }

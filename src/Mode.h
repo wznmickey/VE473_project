@@ -10,6 +10,7 @@
 #include "Gyro.h"
 #include "buzzer.h"
 #include "Mode.h"
+#include <fstream>
 #include <climits>
 
 #define NONE "\033[m"

@@ -39,7 +39,7 @@ class Camera
     public:
         Camera(){};
         Camera(int deviceid, int camid = 1);
-        Camera(std::string filename);
+        Camera(std::string filename, int camid = 1);
         ~Camera();
 
     private:
@@ -62,6 +62,9 @@ class Camera
         void save_pic(WhichCam p, std::string img_name);
         void progress_photo(void);
         cv::Mat & getQ(void){return this->Q;}
+        int getcamid(void){return this->camid;}
+        void resetVid(void);
+        bool isEmpty(void){return this->frame.empty();}
 
     //Distance Configs
     private:

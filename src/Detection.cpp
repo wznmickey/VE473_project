@@ -99,7 +99,7 @@ std::vector< cv::Rect2i >& Detection::get( )
         int y1 = int( outputData [ i * 7 + 4 ] * rows );
         int x2 = int( outputData [ i * 7 + 5 ] * cols );
         int y2 = int( outputData [ i * 7 + 6 ] * rows );
-        if (y2 - y1 < 20) continue; // ignore far away cars
+        if (y2 - y1 < 30) continue; // ignore far away cars
         ret.emplace_back( x1, y1, x2 - x1, y2 - y1 );
         // drawRectText(cv::Rect2i(x1, y1, x2 - x1, y2 - y1));
         // for ( int j = 0; j < 7; j++ )

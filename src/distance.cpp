@@ -11,6 +11,7 @@ static int max2(int a, int b) {
 
 static int rectify(int left, int right) {
     int diff = right - left;
+    return diff / 3;
     if (diff >= 400) return (diff / 7)*3;
     if (diff >= 300) return (diff / 5)<<1;
     if (diff >= 100) return (diff / 3);
@@ -165,7 +166,7 @@ void DistanceCalc::calculateMap(vector<Mat> & vec, cv::Mat & Q) {
 
 }
 
-double DistanceCalc::getBlockPropotion(cv::Rect2d & roi) {
+double DistanceCalc::getBlockPropotion(cv::Rect2i & roi) {
     using namespace cfg;
     struct Config conf;
 
@@ -186,9 +187,9 @@ double DistanceCalc::calculateDistance(vector<Mat> & vec,cv::Rect2i & roi)
     // cv::rectangle(temp, roi, cv::Scalar(0.2), 5);
     // cv::imwrite("./tmp.jpg", temp);
 
-    // double prop = getBlockPropotion(roi);
-    // if (prop >= 0.6) return (13.64*prop*prop-24.767*prop+11.474);
-    // if (prop < 0.1) return 20;
+    double prop = getBlockPropotion(roi);
+    if (prop >= 0.6) return (13.64*prop*prop-24.767*prop+11.474)*4;
+    if (prop < 0.05) return 20;
 
     double finalDistance = 0;
     double countedPoint = 0;
