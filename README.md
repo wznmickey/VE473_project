@@ -1,5 +1,9 @@
 # SAVE: Car Detection System on Raspberry Pi
 
+<center class="half">
+<img src="img/ECE4730J_Group%202_A_Vision-Based_Bicycle_Safety_System_for_Alerting_Collision_with_Vehicles.gif" width=600/>
+</center>
+
 ### Key Insights
 
 + :bicyclist: Designed a cyclist equipment with safety embedded system
@@ -24,7 +28,7 @@ This is a capstone design project in UM-SJTU JI.
 
 ### Dependencies
 
-+ Rasoberry Pi 4B, Intel NCS2, 2x 100 Binocular Camera, MPU6050
++ Raspberry Pi 4B, Intel NCS2, 2x 100 Binocular Camera, MPU6050
 
 + C++ 17 on Linux, OpenVINO, OpenCV, Caddy Server 2
 
